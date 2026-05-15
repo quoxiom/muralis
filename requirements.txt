@@ -1,0 +1,13 @@
+# Core dependencies
+requests>=2.25.0
+Pillow>=8.0.0
+
+# Development dependencies (optional)
+pytest>=6.0.0
+pytest-cov>=2.12.0
+black>=21.0.0
+flake8>=3.9.0
+mypy>=0.910
+
+# GUI support (optional)
+PyGObject>=3.42.0
