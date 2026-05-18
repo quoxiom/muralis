@@ -192,5 +192,45 @@ status:
 		echo "Saved wallpapers: $$count"; \
 	fi
 
+# Testing targets
+.PHONY: test test-unit test-integration test-coverage test-quick
+
+test:
+	@echo "Running all tests..."
+	@pytest tests/ -v --tb=short
+
+test-unit:
+	@echo "Running unit tests..."
+	@pytest tests/unit/ -v
+
+test-integration:
+	@echo "Running integration tests..."
+	@pytest tests/integration/ -v
+
+test-coverage:
+	@echo "Running tests with coverage..."
+	@pytest tests/ --cov=muralis --cov-report=html --cov-report=term
+	@echo "Coverage report: htmlcov/index.html"
+
+test-quick:
+	@echo "Running quick tests..."
+	@pytest tests/ -v -m "not slow"
+
+test-slow:
+	@echo "Running slow tests..."
+	@pytest tests/ -v -m slow
+
+test-verbose:
+	@echo "Running tests with verbose output..."
+	@pytest tests/ -v --tb=long -s
+
+test-watch:
+	@echo "Watching for changes..."
+	@pytest-watch -- -v
+
+test-failed:
+	@echo "Re-running failed tests..."
+	@pytest --lf -v
+
 # Help alias
 default: help

@@ -1,9 +1,9 @@
 """Muralis - Smart Wallpaper Manager for Qutility Suite."""
 
-__version__ = "1.0.0"
+__version__ = "0.2.0"
 __author__ = "Qamber Haidry"
 __license__ = "MIT"
-__copyright__ = "Copyright (c) 2024 Quoxiom"
+__copyright__ = "Copyright (c) 2026 Quoxiom"
 
 from muralis.app import MuralisApp
 from muralis.config import ConfigManager

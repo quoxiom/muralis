@@ -18,7 +18,7 @@ def download_image(url: str, save_path: str, timeout: int = 30, retries: int = 3
         bool: True if successful, False otherwise
     """
     headers = {
-        'User-Agent': 'Muralis/0.1.0 (Qutility Suite; +https://quoxiom.com)'
+        'User-Agent': 'Muralis/0.2.0 (Qutility Suite; +https://quoxiom.com)'
     }
     
     save_path = Path(save_path)

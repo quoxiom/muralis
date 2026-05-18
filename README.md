@@ -1,75 +1,163 @@
-# ♥ Muralis
+##! Muralis - Smart Wallpaper Manager for Linux
 
-### Smart Wallpaper Manager for Linux
+![[License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![[Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
+![[Platform: Linux](https://img.shields.io/badge/platform-Linux-lightgrey.svg)](https://www.linux.org)
 
-**Part of the Qutility Suite by Quxiom**
+>**Muralis** (Latin-inspired): **"Of the wall"** - Bringing art to your desktop daily.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
+### Part of Qutility Suite by Quoxiom
 
-[![Platform: Linux](https://img.shields.io/badge/platform-Linux-lightgrey.svg)](https://www.linux.org)
-
-> *Muralis* (Latin-inspired): *"Of the wall"* - Bringing art to your desktop daily.
-
-## Quick Start
+### Quick Start
 
 ```bash
 git clone https://github.com/quoxiom/qutility-muralis.git
 cd qutility-muralis
-./scripts/install.sh
+python -m pip install -e .
 muralis --once
 muralis --set-daily
 ```
 
-## Features
+### Features
 
-- 🌀 Multiple providers (Bing, NaSA, Unsplash, Wallhaven)
-- 🖤 All Linux desktop environments supported
-- 🔂 Automatic daily updates via systemd
-- 😨 Image effects (blur, darken, grayscale)
+- ✃ Multiple providers (Bing, NASA, Unsplash, Pexels, Wikimedia, Art Institute, Wallhaven)
+- ◠ All Linux desktop environments supported (GNOME, KDE, XFCE, Cinnamon, Mate)
+- 🔂 Automatic daily updates via systemd timer
+- 😨 Image effects (blur, darken, grayscale, vibrant, vignette)
 - 📓 Desktop notifications
-- 💾 Configurable storage management
+- 💾 Smart storage management with auto-cleanup
+- ✔ Multi-monitor support
+- 🚀 4K/8K wallpaper support (Bing)
+- 🔜 Proxy support
+- ✿ Battery-aware updates
 
-## Installation
+### Installation
 
 ```bash
+# From source
 git clone https://github.com/quoxiom/qutility-muralis.git
 cd qutility-muralis
 pip install --user .
-muralis --version
+
+# Or using pipx
+pipx install git+https://github.com/quoxiom/qutility-muralis.git
 ```
 
-## Usage
+### ConfigurationSettings
 
+Edit `~/.config/muralis/config.ini`:J
 ```bash
-Muralis --once
-muralis --once --provider nasa
-muralis --set-daily
-muralis --show-config
-muralis --list-providers
+nano ~/.config/muralis/config.ini
 ```
 
-## Configuration
+[general]
+provider = bing # Bing, NASA, Unsplash, Pexels, Wikimedia, ArtInstitute, Wallhaven
+randomize_provider = false
+fallback_provider = bing
 
-Edit `~/.config/muralis/config.ini`:
-
-```ini[general]
-provider = bing
-auto_update = true
-
-[storage]
-save_downloads = true
-download_dir = ~/Pictures/Muralis
 
 [image]
-resolution = 1920x1080
+resolution = 3840x2160 # 1920x1080, 2560x1440, 3840x2160, 4096x2160
 apply_effects = false
+effect_type = none # blur, darken, grayscale, vibrant, vignette
+
+
+for virtual environment
+
+source venv/bin/activate
+	# Run the app
+muralis --once
 ```
 
-## License
+After installation, you can:
 
-MIT License - Copyright (c) 2024 Quoxiom (Qmber Haidry)
+```bash
+# Run once
+muralis --once
+
+# Use specific provider
+muralis --once --provider nasa
+
+# Setup daily automatic updates
+muralis --set-daily
+
+# Show configuration
+muralis --show-config
+
+# List available providers
+muralis --list-providers
+
+# Check API key status
+muralis --check-keys
+
+# Set API key for Unsplash
+muralis --set-key unsplash YOUR_KEY
+
+# Get a specific setting
+muralis --get general.provider
+
+# Set a specific setting
+muralis --set general.provider nasa
+
+# Reset to defaults
+muralis --reset-config
+```
+
+### API Key Setup
+Should have: 🗻 Read them through.
+
+    [advanced]
+    parallel_downloads = 1
+    max_connections = 5
+
+    [api_keys]
+    # Unsplash - Register at https://unsplash.com/developers
+    unsplash_key =
+
+    # Pexels - Optional (demo key included)
+    pexels_key = 563492ad6f9170000100001d6d5e3b5e5a14e8b8b9b9b9b9b9b9b
+
+    # Flickr - Coming soon
+    sample configuration
+
+### Desktop Environment Support
+
+- GNOME - Uses gsettings
+- KDE Plasma - Uses plasma-applywallpaperimage
+- XFCE - Uses xfconf-query
+- Cinnamon - Uses gsettings
+- Generic - Fallback to feh, nitrogen, etc.
+
+### Automatic Updates
+
+```bash
+# Check timer status
+systemctl --user status muralis.timer
+
+# View logs
+journalctl --user -u muralis.service -f
+
+# Disable automatic updates
+systemctl --user disable --now muralis.timer
+```
+
+### Troubleshooting
+
+```bash
+# Run with verbose output
+muralis --once --verbose
+
+# Check configuration
+cat ~/.config/muralis/config.ini
+
+# Manually set wallpaper
+feh --bg-scale ~/Pictures/Muralis/muralis_*.jpg
+```
+
+### License
+
+MIT License - Copyright (c) 2026 Quoxiom (Qamber Haidry)
 
 ---
 
-**Muralis** - Part of Qutility Suite by Quoxiom
+**Muralis** - Part of Qutility Suite by Quxiom
