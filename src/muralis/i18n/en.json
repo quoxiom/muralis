@@ -1,0 +1,286 @@
+{
+  "cli": {
+    "description": "Muralis - Smart Wallpaper Manager for Linux",
+    "epilog": "Part of Qutility Suite by Quoxiom",
+    "help": {
+      "gui": "Launch the graphical user interface (same as 'muralis-gui')",
+      "config": "Configuration file path (default: ~/.config/muralis/config.ini)",
+      "provider": "Override wallpaper provider for this run",
+      "once": "Run one update cycle and exit",
+      "set_daily": "Setup systemd timer for daily automatic updates",
+      "list_providers": "List all available wallpaper providers",
+      "show_config": "Display current configuration",
+      "verbose": "Enable verbose output for debugging",
+      "export_config": "Export current configuration to JSON file",
+      "import_config": "Import configuration from JSON file",
+      "get": "Get configuration value (e.g., --get general.provider)",
+      "set": "Set configuration value (e.g., --set general.provider nasa)",
+      "reset_config": "Reset configuration to factory defaults",
+      "check_keys": "Check API key status for all providers",
+      "set_key": "Set API key for a provider (e.g., --set-key unsplash YOUR_KEY)",
+      "remove_key": "Remove API key for a provider",
+      "get_key_instructions": "Show instructions to get API key for a provider"
+    },
+    "err": {
+      "not_found": "Warning: '{key}' not found",
+      "format": "Error: Use format SECTION.KEY (e.g., general.provider)",
+      "invalid_key": "\n❌ Invalid Unsplash API key",
+      "invalid_key_hint": "   Please check your key and try again",
+      "invalid_key_update": "   Update with: muralis --set-key unsplash YOUR_KEY\n"
+    },
+    "ok": {
+      "set": "✓ Set {section}.{key} = {value}",
+      "reset": "✓ Configuration reset to defaults",
+      "exported": "✓ Configuration exported to {path}",
+      "imported": "✓ Configuration imported from {path}"
+    },
+    "warn": {
+      "reset": "⚠️  Warning: This will reset all configuration to defaults.",
+      "validation": "\n⚠️ Configuration validation warnings:",
+      "validation_continue": "  Continuing with current values...\n"
+    },
+    "prompt": {
+      "confirm": "Are you sure? (y/N): "
+    },
+    "cancel": "Cancelled",
+    "key": {
+      "instructions_title": "\n📝 Instructions for {provider} API Key:",
+      "no_instructions": "\n❌ No instructions available for '{provider}'",
+      "available": "   Available providers: {providers}",
+      "unknown": "\n❌ Unknown provider: {provider}",
+      "available_short": "   Available: {providers}",
+      "saved": "\n✅ API key for {provider} saved successfully!",
+      "verify": "   Run 'muralis --check-keys' to verify",
+      "invalid": "\n❌ Invalid key format for {provider}",
+      "pattern": "   Key should match pattern: {pattern}",
+      "get_url": "   Get a valid key from: {url}",
+      "removed": "\n✅ API key for {provider} removed",
+      "status_title": "\n🔑 API Key Status",
+      "status_missing": "MISSING (required)",
+      "status_ok": "Configured",
+      "status_ok_optional": "Configured (optional)",
+      "status_missing_optional": "Not configured (optional)",
+      "key_label": "Key: {key}",
+      "tip": "💡 Tip: Run 'muralis --set-key PROVIDER YOUR_KEY' to add API keys"
+    },
+    "providers": {
+      "title": "\n📸 Available Wallpaper Providers",
+      "legend": "\n💡 Legend:",
+      "works": "  ✅ Works immediately",
+      "requires_key": "  🔑 Requires API key setup",
+      "setup": "\n📝 To set up API keys:",
+      "check_line": "  muralis --check-keys              - Check key status",
+      "set_line": "  muralis --set-key unsplash KEY    - Add Unsplash API key",
+      "instructions_line": "  muralis --get-key-instructions unsplash - Get setup help",
+      "bing": "Bing Daily Images (4K/8K, no key needed)",
+      "nasa": "NASA APOD (no key needed)",
+      "pexels": "Pexels Stock Photos (demo key included)",
+      "wikimedia": "Wikimedia Commons (public domain)",
+      "artinstitute": "Art Institute of Chicago (museum art)",
+      "wallhaven": "Wallhaven.cc (anime/gaming art)",
+      "unsplash": "Unsplash (requires free API key)"
+    },
+    "banner": {
+      "title": "Muralis v{version} - Smart Wallpaper Manager",
+      "part_of": "Part of Qutility Suite by Quoxiom",
+      "quick_start": "📌 QUICK START",
+      "once_line": "  muralis --once                    Get today's wallpaper",
+      "once_provider_line": "  muralis --once --provider nasa    Use specific provider",
+      "set_daily_line": "  muralis --set-daily               Setup automatic daily updates",
+      "gui_line": "  muralis -gui                      Launch the graphical interface",
+      "gui_line_alt": "  muralis-gui                       Launch the graphical interface",
+      "configuration": "🔧 CONFIGURATION",
+      "show_config_line": "  muralis --show-config             View current settings",
+      "set_provider_line": "  muralis --set general.provider nasa   Change provider",
+      "set_resolution_line": "  muralis --set image.resolution 3840x2160   Set 4K resolution",
+      "reset_line": "  muralis --reset-config            Reset to defaults",
+      "export_line": "  muralis --export-config backup.json   Backup settings",
+      "import_line": "  muralis --import-config backup.json    Restore settings",
+      "api_keys": "🔑 API KEYS (for Unsplash)",
+      "check_keys_line": "  muralis --check-keys              Check API key status",
+      "set_key_line": "  muralis --set-key unsplash YOUR_KEY   Add Unsplash API key",
+      "get_instructions_line": "  muralis --get-key-instructions unsplash   Get setup help",
+      "providers": "📋 PROVIDERS",
+      "list_providers_line": "  muralis --list-providers          Show all available providers",
+      "tips": "💡 TIPS",
+      "tips_config": "  • Config file location: ~/.config/muralis/config.ini",
+      "tips_editor": "  • Edit config directly with any text editor",
+      "tips_folder": "  • Wallpapers saved to: ~/Pictures/Muralis",
+      "tips_verbose": "  • Run with --verbose for debug output",
+      "docs": "📚 FULL DOCUMENTATION",
+      "docs_help_line": "  muralis --help                    Show this help",
+      "docs_url": "  https://github.com/quoxiom/qutility-muralis"
+    },
+    "sched": {
+      "systemd_ok": "✓ Muralis daily timer installed successfully (systemd)",
+      "systemd_fail": "Could not setup systemd timer: {error}",
+      "cron_ok": "✓ Muralis daily cron job installed successfully",
+      "cron_fail": "Could not setup cron job: {error}",
+      "auto_disabled": "Auto-update disabled in config",
+      "auto_enabled": "Auto-update enabled, running every {hours} hours",
+      "cycle": "Update cycle would run here"
+    },
+    "config": {
+      "created": "✓ Created default configuration at {path}",
+      "title": "📋 Muralis Configuration",
+      "file": "📁 Config file: {path}"
+    },
+    "download": {
+      "not_image": "Warning: URL may not be an image (Content-Type: {content_type})",
+      "retrying": "Download attempt {attempt} failed: {error}. Retrying in {wait}s...",
+      "failed": "Download failed after {retries} attempts: {error}",
+      "unexpected": "Unexpected error during download: {error}",
+      "empty": "Downloaded file is empty: {path}"
+    },
+    "fetch_error": "Error fetching {provider} wallpaper: {error}",
+    "effect_error": "Error applying effect: {error}",
+    "storage": {
+      "cleaned": "Cleaned up {count} old wallpapers"
+    },
+    "unsplash": {
+      "requires_key": "\n⚠️  Unsplash requires an API key",
+      "get_key": "   Get your free key at: https://unsplash.com/developers",
+      "add_key": "   Then add to config: muralis --set-key unsplash YOUR_KEY\n",
+      "bad_format": "\n⚠️  Invalid Unsplash API key format",
+      "format_hint": "   Key should be 32 characters (letters, numbers, - and _)",
+      "format_fix": "   Run: muralis --set-key unsplash YOUR_CORRECT_KEY\n"
+    }
+  },
+  "gui": {
+    "nav": {
+      "brand": "Muralis",
+      "brand_subtitle": "Smart Wallpaper Manager",
+      "preview": "Preview",
+      "history": "History",
+      "settings": "Settings",
+      "about": "About",
+      "footer": "v{version} · Qutility Suite",
+      "collapse": "Collapse sidebar",
+      "expand": "Expand sidebar"
+    },
+    "menu": {
+      "file": "&File",
+      "refresh": "&Refresh Wallpaper",
+      "quit": "&Quit",
+      "view": "&View",
+      "show_tray": "Show &Tray Icon",
+      "theme": "&Theme",
+      "help": "&Help",
+      "about": "&About",
+      "docs": "&Documentation"
+    },
+    "page": {
+      "preview_subtitle": "Current wallpaper and refresh controls",
+      "history_subtitle": "Recently downloaded wallpapers",
+      "settings_subtitle": "Providers, image and storage options"
+    },
+    "status": {
+      "ready": "Ready",
+      "updating": "Updating wallpaper...",
+      "success": "Wallpaper updated successfully!",
+      "failed": "Failed to update wallpaper",
+      "error": "Error: {error}"
+    },
+    "statusbar": {
+      "image": "Image: {name}",
+      "provider": "Provider: {name}",
+      "update_on": "Daily update: {provider} at {time}",
+      "update_next": "Next fetch: {time}",
+      "update_off": "Daily update: off",
+      "sep": "   |   "
+    },
+    "provider": {
+      "bing": "Bing",
+      "nasa": "NASA",
+      "pexels": "Pexels",
+      "wikimedia": "Wikimedia",
+      "artinstitute": "Art Institute",
+      "wallhaven": "Wallhaven",
+      "unsplash": "Unsplash"
+    },
+    "preview": {
+      "no_wallpaper": "No wallpaper loaded",
+      "refresh": "Refresh Now",
+      "open_folder": "Open Folder",
+      "failed": "Failed to load image",
+      "none_hint": "No wallpaper found\nRun 'muralis --once' first",
+      "none_downloaded": "No wallpaper downloaded yet",
+      "tooltip": {
+        "downloaded": "Downloaded: {time}",
+        "size": "Size: {kb:.1f} KB",
+        "provider": "Provider: {name}"
+      }
+    },
+    "history": {
+      "refresh": "🔄 Refresh History",
+      "empty": "No wallpapers found. Run 'muralis --once' first.",
+      "empty_short": "No wallpapers found yet",
+      "set_wallpaper": "Set as Wallpaper"
+    },
+    "settings": {
+      "general": "General",
+      "provider": "Provider",
+      "auto_update": "Automatic updates",
+      "randomize": "Randomize provider",
+      "image": "Image",
+      "resolution": "Resolution",
+      "effects": "Image effects",
+      "effect_type": "Effect type",
+      "storage": "Storage",
+      "save_downloads": "Save downloads",
+      "max_files": "Max files",
+      "max_days": "Max days",
+      "unlimited": "Unlimited",
+      "apply": "Apply Settings",
+      "reset": "Reset to Defaults",
+      "appearance": "Appearance",
+      "theme": "Theme",
+      "show_tray": "Show tray icon",
+      "quit": "Quit",
+      "success_title": "Success",
+      "saved": "Settings saved successfully!",
+      "reset_title": "Reset Settings",
+      "reset_confirm": "Are you sure you want to reset all settings to defaults?",
+      "reset_done": "Settings reset to defaults!",
+      "desc": {
+        "general": "Provider and automatic update behavior.",
+        "image": "Resolution and image effects.",
+        "storage": "How many wallpapers are kept and for how long.",
+        "appearance": "Interface theme and tray icon.",
+        "provider": "Which service supplies your wallpaper.",
+        "auto_update": "Fetch a new wallpaper automatically each day.",
+        "randomize": "Pick a random provider every day.",
+        "resolution": "Download size of the wallpaper image.",
+        "effects": "Apply the selected effect after download.",
+        "effect_type": "Applied when effects are enabled.",
+        "save_downloads": "Keep a local copy in ~/Pictures/Muralis.",
+        "max_files": "Oldest files are removed beyond this limit.",
+        "max_days": "Files older than this are removed.",
+        "theme": "Color theme for the interface.",
+        "show_tray": "Keep Muralis in the system tray when the window is closed."
+      }
+    },
+    "about": {
+      "desc": "Smart Wallpaper Manager for Linux desktops.\nPart of the Qutility Suite by Quoxiom.",
+      "version": "Version {version}",
+      "github": "github.com/quoxiom/qutility-muralis",
+      "docs": "Documentation"
+    },
+    "dialog": {
+      "about_title": "About Muralis",
+      "about_html": "<h2>Muralis</h2><p>Smart Wallpaper Manager for Linux</p><p>Version {version}</p><p>Part of Qutility Suite by Quoxiom</p><p>© 2026 Quoxiom (Qamber Haidry)</p><p><a href='https://github.com/quoxiom/qutility-muralis'>GitHub</a></p>",
+      "docs_title": "Documentation",
+      "docs_text": "Please visit:\n{url}",
+      "error_title": "Error",
+      "failed_update": "Failed to update wallpaper",
+      "failed_update_detail": "Failed to update wallpaper:\n{error}"
+    },
+    "tray": {
+      "refresh": "🔄 Refresh Wallpaper",
+      "show": "📂 Show Muralis",
+      "quit": "🚪 Quit",
+      "tooltip": "Muralis - Wallpaper Manager",
+      "minimized": "Application minimized to system tray"
+    }
+  }
+}

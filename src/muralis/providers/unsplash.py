@@ -2,6 +2,9 @@
 
 import requests
 from typing import Dict, Optional
+
+from muralis.i18n import t
+
 from .base import WallpaperProvider
 
 class UnsplashProvider(WallpaperProvider):
@@ -16,8 +19,8 @@ class UnsplashProvider(WallpaperProvider):
     def _get_api_key(self) -> Optional[str]:
         """Get Unsplash API key from config."""
         if self.config:
-            key = self.config.get('api_keys', 'unsplash_key', fallback=None)
-            if key and key.strip() and key != '':
+            key = self.config.get_api_key('unsplash')
+            if key and key.strip():
                 return key.strip()
         return None
     
@@ -25,16 +28,16 @@ class UnsplashProvider(WallpaperProvider):
         """Check if API key is configured."""
         key = self._get_api_key()
         if not key:
-            print("\n⚠️  Unsplash requires an API key")
-            print("   Get your free key at: https://unsplash.com/developers")
-            print("   Then add to config: muralis --set-key unsplash YOUR_KEY\n")
+            print(t("cli.unsplash.requires_key"))
+            print(t("cli.unsplash.get_key"))
+            print(t("cli.unsplash.add_key"))
             return False
         
         # Basic format validation
         if len(key) != 32 or not all(c.isalnum() or c in '-_' for c in key):
-            print("\n⚠️  Invalid Unsplash API key format")
-            print("   Key should be 32 characters (letters, numbers, - and _)")
-            print("   Run: muralis --set-key unsplash YOUR_CORRECT_KEY\n")
+            print(t("cli.unsplash.bad_format"))
+            print(t("cli.unsplash.format_hint"))
+            print(t("cli.unsplash.format_fix"))
             return False
         
         return True
@@ -72,23 +75,20 @@ class UnsplashProvider(WallpaperProvider):
             data = response.json()
             
             # Get the raw image URL (highest quality)
-            image_url = data.get('urls', {}).get('raw')
-            if not image_url:
-                image_url = data.get('urls', {}).get('full')
-            if not image_url:
-                image_url = data.get('urls', {}).get('regular')
+            urls = data.get('urls', {})
+            image_url = urls.get('raw') or urls.get('full') or urls.get('regular')
             
             # Add resolution parameters to raw URL
-            if image_url and 'raw' in image_url:
+            if isinstance(image_url, str) and 'raw' in image_url:
                 image_url = f"{image_url}&w={width}&h={height}&fit=crop"
-            
-            return image_url
+                return image_url
+            return image_url if isinstance(image_url, str) else None
             
         except requests.exceptions.HTTPError as e:
             if e.response is not None and e.response.status_code == 401:
-                print("\n❌ Invalid Unsplash API key")
-                print("   Please check your key and try again")
-                print("   Update with: muralis --set-key unsplash YOUR_KEY\n")
+                print(t("cli.err.invalid_key"))
+                print(t("cli.err.invalid_key_hint"))
+                print(t("cli.err.invalid_key_update"))
             else:
                 print(f"Error fetching Unsplash photo: {e}")
             return None

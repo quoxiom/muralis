@@ -280,3 +280,6 @@ env/
 # macOS specific
 *.dmg
 *.app
+# Local Reasonix session artifacts
+.reasonix/
+scripts/commands.txt

@@ -1,7 +1,7 @@
 #!/usk/bin/env python3
 """Tests for wallpaper providers."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from muralis.providers.bing import BingProvider
 from muralis.providers.nasa import NasaProvider
 from muralis.providers.pexels import PexelsProvider
@@ -15,10 +15,8 @@ class TestProviders:
     def test_bing_provider(self, mock_get):
         """Test Bing provider."""
         # Mock the API response
-        mock_get.return_value.object = MagicMock(
-            status_code=200,
-            json_return_value={'images': [{'url': 'image.jpg'}]}
-        )
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {'images': [{'url': 'image.jpg'}]}
         
         provider = BingProvider()
         url = provider.get_daily_url()
@@ -32,10 +30,8 @@ class TestProviders:
     @patch('requests.get')
     def test_nasa_provider(self, mock_get):
         """Test NASA provider."""
-        mock_get.return_value.object = MagicMock(
-            status_code=200,
-            json_return_value={'media_type': 'image', 'url': 'image.jpg'}
-        )
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {'media_type': 'image', 'url': 'image.jpg'}
         
         provider = NasaProvider()
         url = provider.get_daily_url()
@@ -44,37 +40,31 @@ class TestProviders:
     @patch('requests.get')
     def test_pexels_provider(self, mock_get):
         """Test Pexels provider."""
-        mock_get.return_value.object = MagicMock(
-            status_code=200,
-            json_return_value={'photos': [{'src': {'original': 'url.jpg'}}]}
-        )
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {'photos': [{'src': {'original': 'url.jpg'}}]}
         
         provider = PexelsProvider()
         url = provider.get_daily_url()
-        # Pexels may return None if demo key fails
-        # That's acceptable
-        assert url is not None or url is None
+        assert url is not None
+        assert url == 'url.jpg'
 
     @patch('requests.get')
     def test_wikimedia_provider(self, mock_get):
         """Test Wikimedia provider."""
-        mock_get.return_value.object = MagicMock(
-            status_code=200,
-            json_return_value={'query': {'pages': {'1': {'imageinfo': [{'url': 'image.jpg'}]}}}}    
-        )
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            'query': {'pages': {'1': {'imageinfo': [{'url': 'image.jpg'}]}}}
+        }
         
         provider = WikimediaProvider()
         url = provider.get_daily_url()
-        # Wikimedia may fail randomly
-        assert url is not None or url is None
+        assert url is not None
 
     @patch('requests.get')
     def test_artinstitute_provider(self, mock_get):
         """Test Art Institute provider."""
-        mock_get.return_value.object = MagicMock(
-            status_code=200,
-            json_return_value={'data': [{'image_id': '123', 'title': 'Test'}]}
-        )
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {'data': [{'image_id': '123', 'title': 'Test'}]}
         
         provider = ArtInstituteProvider()
         url = provider.get_daily_url()

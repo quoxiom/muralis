@@ -1,127 +1,158 @@
 """Wallpaper preview widget for Muralis GUI."""
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QFrame
-)
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+import configparser
+from datetime import datetime
 from pathlib import Path
-from typing import Optional, Callable
+from typing import Callable, Optional
+
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QPixmap, QResizeEvent
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
+)
+
+from muralis.i18n import t
+from .icons import make_icon, ICON_IDLE
+
+MODIFIED_TIME_FORMAT = "%d %b %Y %H:%M:%S"
+CONFIG_PATH = Path.home() / ".config" / "muralis" / "config.ini"
+
+TOOL_BUTTON_SIZE = 34
+PREVIEW_SIZE = (800, 450)  # fallback for freshly-downloaded images without a saved size
+
+
+def _safe_mtime(path: Path) -> float:
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return 0.0
+
+
+def _provider_name() -> str:
+    """Localized label for the configured provider."""
+    provider = "bing"
+    try:
+        if CONFIG_PATH.exists():
+            config = configparser.ConfigParser()
+            config.read(CONFIG_PATH)
+            provider = config.get("general", "provider", fallback="bing")
+    except (configparser.Error, OSError):
+        pass
+    localized = t(f"gui.provider.{provider}")
+    return provider if localized.startswith("gui.provider") else localized
 
 
 class PreviewWidget(QWidget):
-    """Widget for displaying current wallpaper preview."""
-    
+    """Wallpaper preview: an expanding image with a rich tooltip."""
+
     def __init__(self, refresh_callback: Optional[Callable] = None, parent=None):
-        """Initialize the preview widget.
-        
-        Args:
-            refresh_callback: Callback function to call when refresh is requested
-            parent: Parent widget
-        """
         super().__init__(parent)
-        
+
         self.refresh_callback = refresh_callback
-        
+        self._pixmap: Optional[QPixmap] = None
+        self._tooltip = ""
+
         layout = QVBoxLayout(self)
-        
-        # Preview image
-        self.preview_label = QLabel()
-        self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.preview_label.setMinimumHeight(400)
-        self.preview_label.setStyleSheet("""
-            QLabel {
-                background-color: #2d2d2d;
-                border: 2px solid #3d3d3d;
-                border-radius: 5px;
-            }
-        """)
-        layout.addWidget(self.preview_label)
-        
-        # Info frame
-        info_frame = QFrame()
-        info_frame.setFrameShape(QFrame.Shape.Box)
-        info_frame.setStyleSheet("""
-            QFrame {
-                background-color: #1e1e1e;
-                border-radius: 5px;
-                padding: 10px;
-            }
-        """)
-        info_layout = QHBoxLayout(info_frame)
-        
-        self.info_label = QLabel("No wallpaper loaded")
-        self.info_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        info_layout.addWidget(self.info_label)
-        
-        layout.addWidget(info_frame)
-        
-        # Action buttons
-        button_layout = QHBoxLayout()
-        
-        self.refresh_btn = QPushButton("🔄 Refresh Now")
+
+        # Top toolbar: icon-only actions
+        toolbar = QHBoxLayout()
+        toolbar.setSpacing(6)
+        self.refresh_btn = self._tool_button("refresh", t("gui.preview.refresh"))
         self.refresh_btn.clicked.connect(self.request_refresh)
-        button_layout.addWidget(self.refresh_btn)
-        
-        self.open_folder_btn = QPushButton("📁 Open Folder")
+        toolbar.addWidget(self.refresh_btn)
+        self.open_folder_btn = self._tool_button(
+            "folder", t("gui.preview.open_folder"))
         self.open_folder_btn.clicked.connect(self.open_wallpaper_folder)
-        button_layout.addWidget(self.open_folder_btn)
-        
-        layout.addLayout(button_layout)
-    
+        toolbar.addWidget(self.open_folder_btn)
+        toolbar.addStretch()
+        layout.addLayout(toolbar)
+
+        # Expands in both directions — the sole body of the preview.
+        self.preview_label = QLabel()
+        self.preview_label.setObjectName("previewImage")
+        self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.preview_label.setMinimumHeight(200)
+        self.preview_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.preview_label.setToolTip("")
+        layout.addWidget(self.preview_label, 1)
+
+    # ------------------------------------------------------------------
+    def _tool_button(self, icon_name: str, tooltip: str) -> QPushButton:
+        button = QPushButton()
+        button.setObjectName("iconActionButton")
+        button.setIcon(make_icon(icon_name, ICON_IDLE, 18))
+        button.setIconSize(QSize(18, 18))
+        button.setFixedSize(TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE)
+        button.setToolTip(tooltip)
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+        return button
+
     def request_refresh(self):
-        """Request a wallpaper refresh."""
         if self.refresh_callback:
             self.refresh_callback()
         else:
             print("No refresh callback set")
-    
+
     def load_current_wallpaper(self):
-        """Load and display the current wallpaper."""
         wallpaper_dir = Path.home() / "Pictures" / "Muralis"
-        
         if wallpaper_dir.exists():
             wallpapers = list(wallpaper_dir.glob("muralis_*.jpg"))
             if wallpapers:
-                latest = max(wallpapers, key=lambda p: p.stat().st_mtime)
+                latest = max(wallpapers, key=_safe_mtime)
                 self.display_wallpaper(latest)
                 return
-        
-        # No wallpaper found
-        self.preview_label.setText("No wallpaper found\nRun 'muralis --once' first")
+        self._pixmap = None
+        self.preview_label.setText(t("gui.preview.none_hint"))
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.info_label.setText("No wallpaper downloaded yet")
-    
+        self.preview_label.setToolTip("")
+
     def display_wallpaper(self, image_path: Path):
-        """Display a wallpaper from path."""
         pixmap = QPixmap(str(image_path))
         if not pixmap.isNull():
-            # Scale to fit while maintaining aspect ratio
-            scaled = pixmap.scaled(
-                800, 450,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
+            self._pixmap = pixmap
+            self._update_preview()
+
+            stat = image_path.stat()
+            size_kb = stat.st_size / 1024
+            downloaded = datetime.fromtimestamp(stat.st_mtime).strftime(
+                MODIFIED_TIME_FORMAT)
+            provider = _provider_name()
+
+            # Name + rich details on hover, not as cluttering on-screen text.
+            self._tooltip = (
+                f"{image_path.name}\n"
+                f"{t('gui.preview.tooltip.downloaded', time=downloaded)}\n"
+                f"{t('gui.preview.tooltip.size', kb=size_kb)}\n"
+                f"{t('gui.preview.tooltip.provider', name=provider)}"
             )
-            self.preview_label.setPixmap(scaled)
-            
-            # Update info
-            size_mb = image_path.stat().st_size / (1024 * 1024)
-            self.info_label.setText(
-                f"📷 {image_path.name}\n"
-                f"📏 Size: {size_mb:.2f} MB\n"
-                f"🕒 Modified: {image_path.stat().st_mtime}"
-            )
+            self.preview_label.setToolTip(self._tooltip)
         else:
-            self.preview_label.setText("Failed to load image")
-            self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    
+            self._pixmap = None
+            self.preview_label.setText(t("gui.preview.failed"))
+            self.preview_label.setToolTip("")
+
+    def _update_preview(self):
+        if self._pixmap is None:
+            return
+        size = self.preview_label.size()
+        if size.width() < 4 or size.height() < 4:
+            return
+        scaled = self._pixmap.scaled(
+            size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        self.preview_label.setPixmap(scaled)
+
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        self._update_preview()
+
     def refresh_preview(self):
-        """Refresh the preview display."""
         self.load_current_wallpaper()
-    
+
     def open_wallpaper_folder(self):
-        """Open the wallpaper folder in file manager."""
         import subprocess
         wallpaper_dir = Path.home() / "Pictures" / "Muralis"
         wallpaper_dir.mkdir(parents=True, exist_ok=True)

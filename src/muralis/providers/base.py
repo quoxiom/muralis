@@ -1,12 +1,15 @@
 """Abstract base class for wallpaper providers."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from muralis.config import ConfigManager
 
 class WallpaperProvider(ABC):
     """Base class for all wallpaper providers."""
     
-    def __init__(self, config=None):
+    def __init__(self, config: Optional["ConfigManager"] = None):
         """Initialize provider with optional configuration."""
         self.config = config
     

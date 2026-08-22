@@ -2,8 +2,10 @@
 
 import re
 import os
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 from pathlib import Path
+
+from muralis.i18n import t
 
 from muralis.config import ConfigManager
 
@@ -11,7 +13,7 @@ class APIKeyManager:
     """Manage and validate API keys for various providers."""
     
     # Provider configuration
-    PROVIDER_CONFIG = {
+    PROVIDER_CONFIG: Dict[str, Dict[str, Any]] = {
         'unsplash': {
             'key_name': 'unsplash_key',
             'pattern': r'^[a-zA-Z0-9_-]{32}$',
@@ -66,8 +68,10 @@ To add Flickr support:
         if provider not in self.PROVIDER_CONFIG:
             return None
         
-        key_name = self.PROVIDER_CONFIG[provider]['key_name']
-        key = self.config.get_api_key(key_name)
+        # ConfigManager.get_api_key() expects the provider name and appends
+        # '_key' itself (e.g. 'unsplash' -> 'unsplash_key'), so pass `provider`
+        # rather than the already-suffixed key_name.
+        key = self.config.get_api_key(provider)
         
         # Return None if empty string
         return key if key and key.strip() else None
@@ -139,7 +143,7 @@ To add Flickr support:
     def display_status(self):
         """Display API key status in a nice format."""
         print("\n" + "=" * 60)
-        print("🔑 API Key Status")
+        print(t("cli.key.status_title"))
         print("=" * 60)
         
         for provider, config in self.PROVIDER_CONFIG.items():
@@ -151,16 +155,16 @@ To add Flickr support:
             # Determine status icon
             if is_required and not is_valid:
                 icon = "❌"
-                status_text = "MISSING (required)"
+                status_text = t("cli.key.status_missing")
             elif is_required and is_valid:
                 icon = "✅"
-                status_text = "Configured"
+                status_text = t("cli.key.status_ok")
             elif has_key and is_valid:
                 icon = "🔑"
-                status_text = "Configured (optional)"
+                status_text = t("cli.key.status_ok_optional")
             else:
                 icon = "⚪"
-                status_text = "Not configured (optional)"
+                status_text = t("cli.key.status_missing_optional")
             
             print(f"\n{icon} {provider_title}: {status_text}")
             
@@ -170,7 +174,7 @@ To add Flickr support:
             elif has_key and is_valid:
                 provider_key = self.get_key(provider)
                 key_display = provider_key[:8] + "..." if provider_key else "None"
-                print(f"   → Key: {key_display}")
+                print(t("cli.key.key_label", key=key_display))
         
         print("\n" + "=" * 60)
         print("💡 Tip: Run 'muralis --set-key PROVIDER YOUR_KEY' to add API keys")
@@ -179,7 +183,8 @@ To add Flickr support:
     def get_instructions(self, provider: str) -> Optional[str]:
         """Get setup instructions for a provider."""
         if provider in self.PROVIDER_CONFIG:
-            return self.PROVIDER_CONFIG[provider].get('instructions')
+            instructions = self.PROVIDER_CONFIG[provider].get('instructions')
+            return instructions if isinstance(instructions, str) else None
         return None
 
 

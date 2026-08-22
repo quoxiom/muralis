@@ -1,5 +1,7 @@
 """Wallpaper providers for Muralis."""
 
+from typing import Dict, Callable
+
 from muralis.providers.base import WallpaperProvider
 from muralis.providers.bing import BingProvider
 from muralis.providers.nasa import NasaProvider
@@ -11,7 +13,7 @@ from muralis.providers.artinstitute import ArtInstituteProvider
 
 def get_provider(name: str, config=None) -> WallpaperProvider:
     """Factory function to get provider by name."""
-    providers = {
+    providers: Dict[str, Callable[..., WallpaperProvider]] = {
         'bing': BingProvider,
         'nasa': NasaProvider,
         'unsplash': UnsplashProvider,

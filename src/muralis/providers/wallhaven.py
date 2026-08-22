@@ -34,7 +34,8 @@ class WallhavenProvider(WallpaperProvider):
             if data.get('data') and len(data['data']) > 0:
                 # Pick a random wallpaper from results
                 wallpaper = choice(data['data'])
-                return wallpaper.get('path')
+                url = wallpaper.get('path')
+                return url if isinstance(url, str) else None
             return None
         except Exception as e:
             print(f"Error fetching Wallhaven wallpaper: {e}")

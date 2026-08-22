@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import time
 
+from muralis.i18n import t
+
 class ConfigValidationError(Exception):
     """Raised when configuration validation fails."""
     pass
@@ -33,15 +35,18 @@ class ConfigManager:
         return instance
     
     def __init__(self, config_path: str):
-        """Initialize configuration manager (only runs once per path)."""
-        # Check if already initialized
-        if hasattr(self, '_initialized'):
+        """Initialize configuration manager.
+
+        The instance is cached per-path, but the config is re-read from disk
+        on every construction so changes made by other code (e.g. the GUI
+        Settings page) are picked up without restarting the application.
+        """
+        if not hasattr(self, 'config_path'):
+            self.config_path = Path(config_path).expanduser().absolute()
+            self.config = configparser.ConfigParser()
+            self.load()
             return
-        
-        self.config_path = Path(config_path).expanduser().absolute()
-        self.config = configparser.ConfigParser()
-        self._initialized = True
-        
+        # Cached instance: refresh from disk so external edits take effect.
         self.load()
     
     @classmethod
@@ -92,7 +97,7 @@ class ConfigManager:
         for section, options in self.DEFAULT_CONFIG.items():
             self.config[section] = options
         self.save()
-        print(f"✓ Created default configuration at {self.config_path}")
+        print(t("cli.config.created", path=self.config_path))
     
     def save(self):
         """Save configuration to file."""
@@ -131,10 +136,10 @@ class ConfigManager:
                     errors.append(f"{key}: '{value}' is not a valid time (format: HH:MM, 24-hour)")
         
         if errors:
-            print("\n⚠️ Configuration validation warnings:")
+            print(t("cli.warn.validation"))
             for error in errors:
                 print(f"  • {error}")
-            print("  Continuing with current values...\n")
+            print(t("cli.warn.validation_continue"))
     
     def get_str(self, section: str, key: str, fallback: str = "") -> str:
         """Get string configuration value."""
@@ -256,9 +261,9 @@ class ConfigManager:
     def display(self):
         """Display current configuration in a readable format."""
         print("\n" + "=" * 60)
-        print("📋 Muralis Configuration")
+        print(t("cli.config.title"))
         print("=" * 60)
-        print(f"📁 Config file: {self.config_path}")
+        print(t("cli.config.file", path=self.config_path))
         print("=" * 60)
         
         for section in self.config.sections():
@@ -286,7 +291,7 @@ class ConfigManager:
         export_path.parent.mkdir(parents=True, exist_ok=True)
         with open(export_path, 'w') as f:
             json.dump(data, f, indent=2)
-        print(f"✓ Configuration exported to {export_path}")
+        print(t("cli.ok.exported", path=export_path))
     
     def import_json(self, filepath: str):
         """Import configuration from JSON file."""
@@ -301,7 +306,7 @@ class ConfigManager:
                 self.config[section][key] = str(value)
         
         self.save()
-        print(f"✓ Configuration imported from {import_path}")
+        print(t("cli.ok.imported", path=import_path))
     
     def _validate_resolution(self, resolution: str) -> bool:
         """Validate resolution format (e.g., 1920x1080)."""

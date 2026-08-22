@@ -4,53 +4,62 @@
 import sys
 import argparse
 from pathlib import Path
+
 from muralis.app import MuralisApp
 from muralis import __version__
+from muralis.i18n import t
+
 
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Muralis - Smart Wallpaper Manager for Linux",
-        epilog="Part of Qutility Suite by Quoxiom",
+        description=t("cli.description"),
+        epilog=t("cli.epilog"),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         prog="muralis"
     )
     
     # Basic options
     parser.add_argument(
+        "-gui", "--gui",
+        action="store_true",
+        help=t("cli.help.gui")
+    )
+    
+    parser.add_argument(
         "-c", "--config",
         default=str(Path.home() / ".config/muralis/config.ini"),
-        help="Configuration file path (default: ~/.config/muralis/config.ini)"
+        help=t("cli.help.config")
     )
     
     parser.add_argument(
         "-p", "--provider",
         choices=["bing", "nasa", "unsplash", "wallhaven", "pexels", "wikimedia", "artinstitute"],
-        help="Override wallpaper provider for this run"
+        help=t("cli.help.provider")
     )
     
     parser.add_argument(
         "--once",
         action="store_true",
-        help="Run one update cycle and exit"
+        help=t("cli.help.once")
     )
     
     parser.add_argument(
         "--set-daily",
         action="store_true",
-        help="Setup systemd timer for daily automatic updates"
+        help=t("cli.help.set_daily")
     )
     
     parser.add_argument(
         "--list-providers",
         action="store_true",
-        help="List all available wallpaper providers"
+        help=t("cli.help.list_providers")
     )
     
     parser.add_argument(
         "--show-config",
         action="store_true",
-        help="Display current configuration"
+        help=t("cli.help.show_config")
     )
     
     parser.add_argument(
@@ -62,66 +71,66 @@ def parse_arguments():
     parser.add_argument(
         "--verbose",
         action="store_true",
-        help="Enable verbose output for debugging"
+        help=t("cli.help.verbose")
     )
     
     # Configuration management commands
     parser.add_argument(
         "--export-config",
         metavar="FILE",
-        help="Export current configuration to JSON file"
+        help=t("cli.help.export_config")
     )
     
     parser.add_argument(
         "--import-config",
         metavar="FILE",
-        help="Import configuration from JSON file"
+        help=t("cli.help.import_config")
     )
     
     parser.add_argument(
         "--get",
         nargs=1,
         metavar="SECTION.KEY",
-        help="Get configuration value (e.g., --get general.provider)"
+        help=t("cli.help.get")
     )
     
     parser.add_argument(
         "--set",
         nargs=2,
         metavar=("SECTION.KEY", "VALUE"),
-        help="Set configuration value (e.g., --set general.provider nasa)"
+        help=t("cli.help.set")
     )
     
     parser.add_argument(
         "--reset-config",
         action="store_true",
-        help="Reset configuration to factory defaults"
+        help=t("cli.help.reset_config")
     )
     
     # API key management commands
     parser.add_argument(
         "--check-keys",
         action="store_true",
-        help="Check API key status for all providers"
+        help=t("cli.help.check_keys")
     )
     
     parser.add_argument(
         "--set-key",
         nargs=2,
         metavar=("PROVIDER", "KEY"),
-        help="Set API key for a provider (e.g., --set-key unsplash YOUR_KEY)"
+        help=t("cli.help.set_key")
     )
     
     parser.add_argument(
         "--remove-key",
         metavar="PROVIDER",
-        help="Remove API key for a provider"
+        help=t("cli.help.remove_key")
     )
     
     parser.add_argument(
         "--get-key-instructions",
         metavar="PROVIDER",
-        help="Show instructions to get API key for a provider"
+        help=t("cli.help.get_key_instructions")
     )
     
     return parser.parse_args()
@@ -149,9 +158,9 @@ def handle_config_commands(args, app):
             if value:
                 print(value)
             else:
-                print(f"Warning: '{section_key}' not found", file=sys.stderr)
+                print(t("cli.err.not_found", key=section_key), file=sys.stderr)
         else:
-            print(f"Error: Use format SECTION.KEY (e.g., general.provider)", file=sys.stderr)
+            print(t("cli.err.format"), file=sys.stderr)
         return True
     
     # Set a configuration value
@@ -160,20 +169,20 @@ def handle_config_commands(args, app):
         if '.' in section_key:
             section, key = section_key.split('.', 1)
             app.config.set(section, key, value)
-            print(f"✓ Set {section}.{key} = {value}")
+            print(t("cli.ok.set", section=section, key=key, value=value))
         else:
-            print(f"Error: Use format SECTION.KEY (e.g., general.provider)", file=sys.stderr)
+            print(t("cli.err.format"), file=sys.stderr)
         return True
     
     # Reset configuration to defaults
     if args.reset_config:
-        print("⚠️  Warning: This will reset all configuration to defaults.")
-        confirm = input("Are you sure? (y/N): ")
+        print(t("cli.warn.reset"))
+        confirm = input(t("cli.prompt.confirm"))
         if confirm.lower() == 'y':
             app.config.create_default()
-            print("✓ Configuration reset to defaults")
+            print(t("cli.ok.reset"))
         else:
-            print("Cancelled")
+            print(t("cli.cancel"))
         return True
     
     return False
@@ -190,11 +199,12 @@ def handle_api_key_commands(args, app):
         provider = args.get_key_instructions.lower()
         instructions = key_manager.get_instructions(provider)
         if instructions:
-            print(f"\n📝 Instructions for {provider.title()} API Key:")
+            print(t("cli.key.instructions_title", provider=provider.title()))
             print(instructions)
         else:
-            print(f"\n❌ No instructions available for '{provider}'")
-            print(f"   Available providers: {', '.join(key_manager.PROVIDER_CONFIG.keys())}")
+            print(t("cli.key.no_instructions", provider=provider))
+            print(t("cli.key.available",
+                    providers=", ".join(key_manager.PROVIDER_CONFIG.keys())))
         return True
     
     # Set API key
@@ -203,19 +213,22 @@ def handle_api_key_commands(args, app):
         provider = provider.lower()
         
         if provider not in key_manager.PROVIDER_CONFIG:
-            print(f"\n❌ Unknown provider: {provider}")
-            print(f"   Available: {', '.join(key_manager.PROVIDER_CONFIG.keys())}")
+            print(t("cli.key.unknown", provider=provider))
+            print(t("cli.key.available_short",
+                    providers=", ".join(key_manager.PROVIDER_CONFIG.keys())))
             return True
         
         # Validate key format
         if key_manager.validate_key(provider, key):
             key_manager.set_key(provider, key)
-            print(f"\n✅ API key for {provider.title()} saved successfully!")
-            print(f"   Run 'muralis --check-keys' to verify")
+            print(t("cli.key.saved", provider=provider.title()))
+            print(t("cli.key.verify"))
         else:
-            print(f"\n❌ Invalid key format for {provider.title()}")
-            print(f"   Key should match pattern: {key_manager.PROVIDER_CONFIG[provider].get('pattern', 'N/A')}")
-            print(f"   Get a valid key from: {key_manager.PROVIDER_CONFIG[provider]['url']}")
+            print(t("cli.key.invalid", provider=provider.title()))
+            print(t("cli.key.pattern",
+                    pattern=key_manager.PROVIDER_CONFIG[provider].get('pattern', 'N/A')))
+            print(t("cli.key.get_url",
+                    url=key_manager.PROVIDER_CONFIG[provider]['url']))
         return True
     
     # Remove API key
@@ -223,11 +236,11 @@ def handle_api_key_commands(args, app):
         provider = args.remove_key.lower()
         
         if provider not in key_manager.PROVIDER_CONFIG:
-            print(f"\n❌ Unknown provider: {provider}")
+            print(t("cli.key.unknown", provider=provider))
             return True
         
         key_manager.set_key(provider, '')
-        print(f"\n✅ API key for {provider.title()} removed")
+        print(t("cli.key.removed", provider=provider.title()))
         return True
     
     # Check keys status
@@ -240,22 +253,18 @@ def handle_api_key_commands(args, app):
 
 def list_providers():
     """Display list of available providers."""
-    print("\n📸 Available Wallpaper Providers")
+    print(t("cli.providers.title"))
     print("=" * 50)
-    print("  ✅ bing         - Bing Daily Images (4K/8K, no key needed)")
-    print("  ✅ nasa         - NASA APOD (no key needed)")
-    print("  ✅ pexels       - Pexels Stock Photos (demo key included)")
-    print("  ✅ wikimedia    - Wikimedia Commons (public domain)")
-    print("  ✅ artinstitute - Art Institute of Chicago (museum art)")
-    print("  ✅ wallhaven    - Wallhaven.cc (anime/gaming art)")
-    print("  🔑 unsplash     - Unsplash (requires free API key)")
-    print("\n💡 Legend:")
-    print("  ✅ Works immediately")
-    print("  🔑 Requires API key setup")
-    print("\n📝 To set up API keys:")
-    print("  muralis --check-keys              - Check key status")
-    print("  muralis --set-key unsplash KEY    - Add Unsplash API key")
-    print("  muralis --get-key-instructions unsplash - Get setup help")
+    for key in ["bing", "nasa", "pexels", "wikimedia", "artinstitute", "wallhaven"]:
+        print(f"  ✅ {key:<13} - {t(f'cli.providers.{key}')}")
+    print(f"  🔑 {'unsplash':<13} - {t('cli.providers.unsplash')}")
+    print(t("cli.providers.legend"))
+    print(t("cli.providers.works"))
+    print(t("cli.providers.requires_key"))
+    print(t("cli.providers.setup"))
+    print(t("cli.providers.check_line"))
+    print(t("cli.providers.set_line"))
+    print(t("cli.providers.instructions_line"))
     print()
     return 0
 
@@ -263,41 +272,42 @@ def list_providers():
 def show_help():
     """Display help information when no arguments provided."""
     print(f"""
-╔══════════════════════════════════════════════════════════════════╗
-║  Muralis v{__version__} - Smart Wallpaper Manager                        ║
-║  Part of Qutility Suite by Quoxiom                                ║
-╚══════════════════════════════════════════════════════════════════╝
+{t('cli.banner.title', version=__version__)}
+{t('cli.banner.part_of')}
+{'=' * 50}
 
-📌 QUICK START
-  muralis --once                    Get today's wallpaper
-  muralis --once --provider nasa    Use specific provider
-  muralis --set-daily               Setup automatic daily updates
+{t('cli.banner.quick_start')}
+{t('cli.banner.once_line')}
+{t('cli.banner.once_provider_line')}
+{t('cli.banner.set_daily_line')}
+{t('cli.banner.gui_line')}
+{t('cli.banner.gui_line_alt')}
 
-🔧 CONFIGURATION
-  muralis --show-config             View current settings
-  muralis --set general.provider nasa   Change provider
-  muralis --set image.resolution 3840x2160   Set 4K resolution
-  muralis --reset-config            Reset to defaults
-  muralis --export-config backup.json   Backup settings
-  muralis --import-config backup.json    Restore settings
+{t('cli.banner.configuration')}
+{t('cli.banner.show_config_line')}
+{t('cli.banner.set_provider_line')}
+{t('cli.banner.set_resolution_line')}
+{t('cli.banner.reset_line')}
+{t('cli.banner.export_line')}
+{t('cli.banner.import_line')}
 
-🔑 API KEYS (for Unsplash)
-  muralis --check-keys              Check API key status
-  muralis --set-key unsplash YOUR_KEY   Add Unsplash API key
-  muralis --get-key-instructions unsplash   Get setup help
+{t('cli.banner.api_keys')}
+{t('cli.banner.check_keys_line')}
+{t('cli.banner.set_key_line')}
+{t('cli.banner.get_instructions_line')}
 
-📋 PROVIDERS
-  muralis --list-providers          Show all available providers
+{t('cli.banner.providers')}
+{t('cli.banner.list_providers_line')}
 
-💡 TIPS
-  • Config file location: ~/.config/muralis/config.ini
-  • Edit config directly with any text editor
-  • Wallpapers saved to: ~/Pictures/Muralis
-  • Run with --verbose for debug output
+{t('cli.banner.tips')}
+{t('cli.banner.tips_config')}
+{t('cli.banner.tips_editor')}
+{t('cli.banner.tips_folder')}
+{t('cli.banner.tips_verbose')}
 
-📚 FULL DOCUMENTATION
-  muralis --help                    Show this help
-  https://github.com/quoxiom/qutility-muralis
+{t('cli.banner.docs')}
+{t('cli.banner.docs_help_line')}
+{t('cli.banner.docs_url')}
 
 """)
 
@@ -305,6 +315,12 @@ def show_help():
 def main():
     """Main entry point."""
     args = parse_arguments()
+    
+    # Launch GUI (imported lazily so the CLI stays fast when not needed)
+    if args.gui:
+        from muralis.gui import run_gui
+        run_gui()
+        return 0
     
     # Handle provider listing (no app needed)
     if args.list_providers:

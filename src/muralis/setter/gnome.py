@@ -37,7 +37,7 @@ class GnomeSetter(WallpaperSetter):
     
     def __init__(self):
         """Initialize GNOME setter."""
-        self._has_dark_mode = None
+        self._has_dark_mode: Optional[bool] = None
     
     def _check_dark_mode_support(self) -> bool:
         """Check if GNOME supports dark mode wallpaper (picture-uri-dark).
@@ -64,7 +64,7 @@ class GnomeSetter(WallpaperSetter):
             self._has_dark_mode = False
         
         logger.debug(f"GNOME dark mode support: {self._has_dark_mode}")
-        return self._has_dark_mode
+        return bool(self._has_dark_mode)
     
     def _run_gsettings(self, key: str, value: Optional[str] = None, check: bool = True) -> bool:
         """Run gsettings command.

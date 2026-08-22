@@ -1,7 +1,7 @@
 """Wikimedia Commons provider - Public domain artwork."""
 
 import requests
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 import random
 from .base import WallpaperProvider
 
@@ -29,7 +29,7 @@ class WikimediaProvider(WallpaperProvider):
             # Get random featured image
             category = random.choice(self.CATEGORIES)
             
-            params = {
+            params: Dict[str, Any] = {
                 'action': 'query',
                 'format': 'json',
                 'list': 'random',
@@ -53,7 +53,7 @@ class WikimediaProvider(WallpaperProvider):
                 # Get the image URL
                 if 'imageinfo' in random_page and len(random_page['imageinfo']) > 0:
                     url = random_page['imageinfo'][0].get('url')
-                    if url:
+                    if isinstance(url, str) and url:
                         # Try to get larger version if available
                         url = url.replace('px-', '').replace('-', '')
                         return url
@@ -66,7 +66,7 @@ class WikimediaProvider(WallpaperProvider):
     def get_metadata(self) -> Dict:
         """Get artwork metadata."""
         try:
-            params = {
+            params: Dict[str, Any] = {
                 'action': 'query',
                 'format': 'json',
                 'list': 'random',

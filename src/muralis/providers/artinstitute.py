@@ -1,7 +1,7 @@
 """Art Institute of Chicago provider - Museum artwork."""
 
 import requests
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 import random
 from .base import WallpaperProvider
 
@@ -18,7 +18,7 @@ class ArtInstituteProvider(WallpaperProvider):
         """Get random artwork from Art Institute."""
         try:
             # Get random artwork with image
-            params = {
+            params: Dict[str, Any] = {
                 'limit': 100,
                 'fields': 'id,title,image_id,artist_display,date_display',
                 'has_image': True
@@ -46,7 +46,7 @@ class ArtInstituteProvider(WallpaperProvider):
     def get_metadata(self) -> Dict:
         """Get artwork metadata."""
         try:
-            params = {
+            params: Dict[str, Any] = {
                 'limit': 1,
                 'fields': 'title,artist_display,date_display,place_of_origin'
             }

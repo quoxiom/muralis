@@ -62,6 +62,7 @@ all = ["muralis[dev,gui,test,docs,full]"]
 
 [project.scripts]
 muralis = "muralis.__main__:main"
+muralis-gui = "muralis.gui:run_gui"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -69,7 +70,7 @@ packages = { find = { where = ["src"] } }
 include-package-data = true
 
 [tool.setuptools.package-data]
-muralis = ["py.typed", "*.ini"]
+muralis = ["py.typed", "*.ini", "i18n/*.json", "gui/themes/*.json", "gui/icons/*.svg"]
 
 [tool.setuptools_scm]
 write_to = "src/muralis/_version.py"

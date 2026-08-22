@@ -72,6 +72,10 @@ muralis --once
 After installation, you can:
 
 ```bash
+# Launch the graphical interface (either works)
+muralis -gui
+muralis-gui
+
 # Run once
 muralis --once
 
@@ -102,6 +106,22 @@ muralis --set general.provider nasa
 # Reset to defaults
 muralis --reset-config
 ```
+
+#### Themes
+
+Themes are editable JSON files stored in `~/.config/muralis/themes/`. Built-in
+themes (`docker-dark`, `light`) are copied there on first run — modify them or
+add new ones (each `<name>.json` with a `colors` object appears in
+**View → Theme**). The chosen theme is remembered in the config.
+
+#### Languages
+
+All user-facing text is extracted into JSON language files. The active language
+is picked from your locale (`LANGUAGE`, `LC_ALL`, `LANG`), with English as the
+default when no file exists for the detected language. Shipped translations
+live in the package; put an override at
+`~/.config/muralis/i18n/<lang>.json` (only the keys you translate are needed —
+missing keys fall back to English).
 
 ### API Key Setup
 Should have: 🗻 Read them through.

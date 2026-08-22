@@ -1,5 +1,6 @@
 """KDE Plasma desktop wallpaper setter."""
 
+import os
 import subprocess
 from .base import WallpaperSetter
 

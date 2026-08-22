@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from muralis.i18n import t
+
 SYSTEMD_SERVICE_TEMPLATE = '''[Unit]
 Description=Muralis - Daily Wallpaper Update
 Documentation=https://github.com/quoxiom/qutility-muralis
@@ -91,11 +93,11 @@ class SchedulerManager:
             subprocess.run(['systemctl', '--user', 'start', 'muralis.timer'], 
                           check=True, capture_output=True)
             
-            print("✓ Muralis daily timer installed successfully (systemd)")
+            print(t("cli.sched.systemd_ok"))
             return True
             
         except Exception as e:
-            print(f"Could not setup systemd timer: {e}")
+            print(t("cli.sched.systemd_fail", error=e))
             return False
     
     def _setup_cron(self) -> bool:
@@ -112,13 +114,13 @@ class SchedulerManager:
             if "muralis" not in current_cron:
                 new_cron = current_cron + "\n" + cron_line
                 subprocess.run(['crontab', '-'], input=new_cron, text=True, check=True)
-                print("✓ Muralis daily cron job installed successfully")
+                print(t("cli.sched.cron_ok"))
                 return True
             
             return True
             
         except Exception as e:
-            print(f"Could not setup cron job: {e}")
+            print(t("cli.sched.cron_fail", error=e))
             return False
     
     def _get_script_path(self) -> str:
@@ -143,15 +145,15 @@ class SchedulerManager:
         import time
         
         if not self.auto_update:
-            print("Auto-update disabled in config")
+            print(t("cli.sched.auto_disabled"))
             return
         
         interval = self.config.get_int('general', 'update_interval', 86400)
-        print(f"Auto-update enabled, running every {interval // 3600} hours")
+        print(t("cli.sched.auto_enabled", hours=interval // 3600))
         
         # This is a simple loop for systems without systemd/cron
         # In production, you'd use proper daemonization
         while True:
             time.sleep(interval)
             # Note: Would need callback to run_once
-            print("Update cycle would run here")
+            print(t("cli.sched.cycle"))

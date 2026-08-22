@@ -1,0 +1,286 @@
+{
+  "cli": {
+    "description": "Muralis - Gestionnaire de fonds d'écran pour Linux",
+    "epilog": "Fait partie de Qutility Suite par Quoxiom",
+    "help": {
+      "gui": "Lancer l'interface graphique (identique à 'muralis-gui')",
+      "config": "Chemin du fichier de configuration (défaut : ~/.config/muralis/config.ini)",
+      "provider": "Forcer le fournisseur pour cette exécution",
+      "once": "Exécuter un cycle de mise à jour puis quitter",
+      "set_daily": "Installer la minuterie systemd pour les mises à jour quotidiennes",
+      "list_providers": "Lister tous les fournisseurs disponibles",
+      "show_config": "Afficher la configuration actuelle",
+      "verbose": "Activer la sortie détaillée pour le débogage",
+      "export_config": "Exporter la configuration vers un fichier JSON",
+      "import_config": "Importer la configuration depuis un fichier JSON",
+      "get": "Obtenir une valeur de configuration (ex. : --get general.provider)",
+      "set": "Définir une valeur de configuration (ex. : --set general.provider nasa)",
+      "reset_config": "Réinitialiser la configuration aux valeurs par défaut",
+      "check_keys": "Vérifier l'état des clés API pour tous les fournisseurs",
+      "set_key": "Définir une clé API pour un fournisseur (ex. : --set-key unsplash VOTRE_CLE)",
+      "remove_key": "Supprimer la clé API d'un fournisseur",
+      "get_key_instructions": "Afficher les instructions pour obtenir une clé API"
+    },
+    "err": {
+      "not_found": "Avertissement : '{key}' introuvable",
+      "format": "Erreur : utilisez le format SECTION.CLE (ex. : general.provider)",
+      "invalid_key": "\n❌ Clé Unsplash invalide",
+      "invalid_key_hint": "   Veuillez vérifier votre clé et réessayer",
+      "invalid_key_update": "   Mise à jour : muralis --set-key unsplash VOTRE_CLE\n"
+    },
+    "ok": {
+      "set": "✓ {section}.{key} = {value} défini",
+      "reset": "✓ Configuration réinitialisée aux valeurs par défaut",
+      "exported": "✓ Configuration exportée vers {path}",
+      "imported": "✓ Configuration importée depuis {path}"
+    },
+    "warn": {
+      "reset": "⚠️  Attention : cela réinitialisera toute la configuration.",
+      "validation": "\n⚠️ Avertissements de validation de la configuration :",
+      "validation_continue": "  Poursuite avec les valeurs actuelles...\n"
+    },
+    "prompt": {
+      "confirm": "Êtes-vous sûr ? (o/N) : "
+    },
+    "cancel": "Annulé",
+    "key": {
+      "instructions_title": "\n📝 Instructions pour la clé API {provider} :",
+      "no_instructions": "\n❌ Aucune instruction disponible pour '{provider}'",
+      "available": "   Fournisseurs disponibles : {providers}",
+      "unknown": "\n❌ Fournisseur inconnu : {provider}",
+      "available_short": "   Disponibles : {providers}",
+      "saved": "\n✅ Clé API pour {provider} enregistrée avec succès !",
+      "verify": "   Exécutez 'muralis --check-keys' pour vérifier",
+      "invalid": "\n❌ Format de clé invalide pour {provider}",
+      "pattern": "   La clé doit correspondre au format : {pattern}",
+      "get_url": "   Obtenez une clé valide sur : {url}",
+      "removed": "\n✅ Clé API pour {provider} supprimée",
+      "status_title": "\n🔑 État des clés API",
+      "status_missing": "MANQUANTE (requise)",
+      "status_ok": "Configurée",
+      "status_ok_optional": "Configurée (optionnelle)",
+      "status_missing_optional": "Non configurée (optionnelle)",
+      "key_label": "Clé : {key}",
+      "tip": "💡 Astuce : exécutez 'muralis --set-key FOURNISSEUR VOTRE_CLE' pour ajouter des clés API"
+    },
+    "providers": {
+      "title": "\n📸 Fournisseurs de fonds d'écran disponibles",
+      "legend": "\n💡 Légende :",
+      "works": "  ✅ Fonctionne immédiatement",
+      "requires_key": "  🔑 Nécessite une clé API",
+      "setup": "\n📝 Pour configurer les clés API :",
+      "check_line": "  muralis --check-keys              - Vérifier l'état des clés",
+      "set_line": "  muralis --set-key unsplash CLE    - Ajouter une clé Unsplash",
+      "instructions_line": "  muralis --get-key-instructions unsplash - Aide pour obtenir une clé",
+      "bing": "Images quotidiennes Bing (4K/8K, aucune clé requise)",
+      "nasa": "NASA APOD (aucune clé requise)",
+      "pexels": "Photos libres Pexels (clé de démonstration incluse)",
+      "wikimedia": "Wikimedia Commons (domaine public)",
+      "artinstitute": "Art Institute of Chicago (art de musée)",
+      "wallhaven": "Wallhaven.cc (art anime/jeux vidéo)",
+      "unsplash": "Unsplash (nécessite une clé API gratuite)"
+    },
+    "banner": {
+      "title": "Muralis v{version} - Gestionnaire de fonds d'écran",
+      "part_of": "Fait partie de Qutility Suite par Quoxiom",
+      "quick_start": "📌 DÉMARRAGE RAPIDE",
+      "once_line": "  muralis --once                    Obtenir le fond d'écran du jour",
+      "once_provider_line": "  muralis --once --provider nasa    Utiliser un fournisseur précis",
+      "set_daily_line": "  muralis --set-daily               Configurer les mises à jour quotidiennes",
+      "gui_line": "  muralis -gui                      Lancer l'interface graphique",
+      "gui_line_alt": "  muralis-gui                       Lancer l'interface graphique",
+      "configuration": "🔧 CONFIGURATION",
+      "show_config_line": "  muralis --show-config             Voir les réglages actuels",
+      "set_provider_line": "  muralis --set general.provider nasa   Changer de fournisseur",
+      "set_resolution_line": "  muralis --set image.resolution 3840x2160   Définir la résolution 4K",
+      "reset_line": "  muralis --reset-config            Réinitialiser",
+      "export_line": "  muralis --export-config sauvegarde.json   Sauvegarder les réglages",
+      "import_line": "  muralis --import-config sauvegarde.json    Restaurer les réglages",
+      "api_keys": "🔑 CLÉS API (pour Unsplash)",
+      "check_keys_line": "  muralis --check-keys              Vérifier l'état des clés API",
+      "set_key_line": "  muralis --set-key unsplash VOTRE_CLE   Ajouter une clé Unsplash",
+      "get_instructions_line": "  muralis --get-key-instructions unsplash   Aide pour obtenir une clé",
+      "providers": "📋 FOURNISSEURS",
+      "list_providers_line": "  muralis --list-providers          Voir tous les fournisseurs",
+      "tips": "💡 CONSEILS",
+      "tips_config": "  • Emplacement du fichier de configuration : ~/.config/muralis/config.ini",
+      "tips_editor": "  • Modifiez la configuration avec n'importe quel éditeur de texte",
+      "tips_folder": "  • Fonds d'écran enregistrés dans : ~/Pictures/Muralis",
+      "tips_verbose": "  • Utilisez --verbose pour la sortie de débogage",
+      "docs": "📚 DOCUMENTATION COMPLÈTE",
+      "docs_help_line": "  muralis --help                    Afficher cette aide",
+      "docs_url": "  https://github.com/quoxiom/qutility-muralis"
+    },
+    "sched": {
+      "systemd_ok": "✓ Minuterie quotidienne Muralis installée avec succès (systemd)",
+      "systemd_fail": "Impossible de configurer la minuterie systemd : {error}",
+      "cron_ok": "✓ Tâche cron quotidienne Muralis installée avec succès",
+      "cron_fail": "Impossible de configurer la tâche cron : {error}",
+      "auto_disabled": "Mise à jour automatique désactivée dans la configuration",
+      "auto_enabled": "Mise à jour automatique activée, toutes les {hours} heures",
+      "cycle": "Le cycle de mise à jour s'exécuterait ici"
+    },
+    "config": {
+      "created": "✓ Configuration par défaut créée dans {path}",
+      "title": "📋 Configuration de Muralis",
+      "file": "📁 Fichier de configuration : {path}"
+    },
+    "download": {
+      "not_image": "Avertissement : l'URL n'est peut-être pas une image (Type de contenu : {content_type})",
+      "retrying": "Tentative de téléchargement {attempt} échouée : {error}. Nouvel essai dans {wait}s...",
+      "failed": "Téléchargement échoué après {retries} tentatives : {error}",
+      "unexpected": "Erreur inattendue pendant le téléchargement : {error}",
+      "empty": "Le fichier téléchargé est vide : {path}"
+    },
+    "fetch_error": "Erreur lors de la récupération du fond d'écran {provider} : {error}",
+    "effect_error": "Erreur lors de l'application de l'effet : {error}",
+    "storage": {
+      "cleaned": "{count} anciens fonds d'écran supprimés"
+    },
+    "unsplash": {
+      "requires_key": "\n⚠️  Unsplash nécessite une clé API",
+      "get_key": "   Obtenez votre clé gratuite sur : https://unsplash.com/developers",
+      "add_key": "   Puis ajoutez-la : muralis --set-key unsplash VOTRE_CLE\n",
+      "bad_format": "\n⚠️  Format de clé Unsplash invalide",
+      "format_hint": "   La clé doit comporter 32 caractères (lettres, chiffres, - et _)",
+      "format_fix": "   Exécutez : muralis --set-key unsplash VOTRE_BONNE_CLE\n"
+    }
+  },
+  "gui": {
+    "nav": {
+      "brand": "Muralis",
+      "brand_subtitle": "Gestionnaire de fonds d'écran",
+      "preview": "Aperçu",
+      "history": "Historique",
+      "settings": "Paramètres",
+      "about": "À propos",
+      "footer": "v{version} · Qutility Suite",
+      "collapse": "Réduire le panneau",
+      "expand": "Déplier le panneau"
+    },
+    "menu": {
+      "file": "&Fichier",
+      "refresh": "&Actualiser le fond d'écran",
+      "quit": "&Quitter",
+      "view": "&Affichage",
+      "show_tray": "Afficher l'&icône de la barre d'état",
+      "theme": "&Thème",
+      "help": "&Aide",
+      "about": "&À propos",
+      "docs": "&Documentation"
+    },
+    "page": {
+      "preview_subtitle": "Fond d'écran actuel et commandes d'actualisation",
+      "history_subtitle": "Fonds d'écran téléchargés récemment",
+      "settings_subtitle": "Fournisseurs, image et options de stockage"
+    },
+    "status": {
+      "ready": "Prêt",
+      "updating": "Mise à jour du fond d'écran...",
+      "success": "Fond d'écran mis à jour avec succès !",
+      "failed": "Échec de la mise à jour du fond d'écran",
+      "error": "Erreur : {error}"
+    },
+    "statusbar": {
+      "image": "Image : {name}",
+      "provider": "Fournisseur : {name}",
+      "update_on": "Mise à jour quotidienne : {provider} à {time}",
+      "update_next": "Prochaine récupération : {time}",
+      "update_off": "Mise à jour quotidienne : désactivée",
+      "sep": "   |   "
+    },
+    "provider": {
+      "bing": "Bing",
+      "nasa": "NASA",
+      "pexels": "Pexels",
+      "wikimedia": "Wikimedia",
+      "artinstitute": "Art Institute",
+      "wallhaven": "Wallhaven",
+      "unsplash": "Unsplash"
+    },
+    "preview": {
+      "no_wallpaper": "Aucun fond d'écran chargé",
+      "refresh": "Actualiser",
+      "open_folder": "Ouvrir le dossier",
+      "failed": "Échec du chargement de l'image",
+      "none_hint": "Aucun fond d'écran trouvé\nExécutez 'muralis --once' d'abord",
+      "none_downloaded": "Aucun fond d'écran téléchargé pour le moment",
+      "tooltip": {
+        "downloaded": "Téléchargé : {time}",
+        "size": "Taille : {kb:.1f} Ko",
+        "provider": "Fournisseur : {name}"
+      }
+    },
+    "history": {
+      "refresh": "🔄 Actualiser l'historique",
+      "empty": "Aucun fond d'écran trouvé. Exécutez 'muralis --once' d'abord.",
+      "empty_short": "Aucun fond d'écran trouvé pour le moment",
+      "set_wallpaper": "Définir comme fond d'écran"
+    },
+    "settings": {
+      "general": "Général",
+      "provider": "Fournisseur",
+      "auto_update": "Mises à jour automatiques",
+      "randomize": "Fournisseur aléatoire",
+      "image": "Image",
+      "resolution": "Résolution",
+      "effects": "Effets d'image",
+      "effect_type": "Type d'effet",
+      "storage": "Stockage",
+      "save_downloads": "Enregistrer les téléchargements",
+      "max_files": "Nombre max. de fichiers",
+      "max_days": "Nombre max. de jours",
+      "unlimited": "Illimité",
+      "apply": "Appliquer les paramètres",
+      "reset": "Réinitialiser",
+      "appearance": "Apparence",
+      "theme": "Thème",
+      "show_tray": "Icône de la barre d'état",
+      "quit": "Quitter",
+      "success_title": "Succès",
+      "saved": "Paramètres enregistrés avec succès !",
+      "reset_title": "Réinitialiser les paramètres",
+      "reset_confirm": "Voulez-vous vraiment réinitialiser tous les paramètres ?",
+      "reset_done": "Paramètres réinitialisés aux valeurs par défaut !",
+      "desc": {
+        "general": "Fournisseur et comportement des mises à jour automatiques.",
+        "image": "Résolution et effets d'image.",
+        "storage": "Combien de fonds d'écran sont conservés et pendant combien de temps.",
+        "appearance": "Thème de l'interface et icône de la barre d'état.",
+        "provider": "Quel service fournit votre fond d'écran.",
+        "auto_update": "Télécharger automatiquement un nouveau fond d'écran chaque jour.",
+        "randomize": "Choisir un fournisseur au hasard chaque jour.",
+        "resolution": "Taille de téléchargement de l'image.",
+        "effects": "Appliquer l'effet sélectionné après le téléchargement.",
+        "effect_type": "Appliqué lorsque les effets sont activés.",
+        "save_downloads": "Conserver une copie locale dans ~/Pictures/Muralis.",
+        "max_files": "Les fichiers les plus anciens sont supprimés au-delà de cette limite.",
+        "max_days": "Les fichiers plus anciens que ce nombre de jours sont supprimés.",
+        "theme": "Thème de couleurs de l'interface.",
+        "show_tray": "Garder Muralis dans la barre d'état lorsque la fenêtre est fermée."
+      }
+    },
+    "about": {
+      "desc": "Gestionnaire de fonds d'écran pour Linux.\nFait partie de Qutility Suite par Quoxiom.",
+      "version": "Version {version}",
+      "github": "github.com/quoxiom/qutility-muralis",
+      "docs": "Documentation"
+    },
+    "dialog": {
+      "about_title": "À propos de Muralis",
+      "about_html": "<h2>Muralis</h2><p>Gestionnaire de fonds d'écran pour Linux</p><p>Version {version}</p><p>Fait partie de Qutility Suite par Quoxiom</p><p>© 2026 Quoxiom (Qamber Haidry)</p><p><a href='https://github.com/quoxiom/qutility-muralis'>GitHub</a></p>",
+      "docs_title": "Documentation",
+      "docs_text": "Veuillez visiter :\n{url}",
+      "error_title": "Erreur",
+      "failed_update": "Échec de la mise à jour du fond d'écran",
+      "failed_update_detail": "Échec de la mise à jour du fond d'écran :\n{error}"
+    },
+    "tray": {
+      "refresh": "🔄 Actualiser le fond d'écran",
+      "show": "📂 Afficher Muralis",
+      "quit": "🚪 Quitter",
+      "tooltip": "Muralis - Gestionnaire de fonds d'écran",
+      "minimized": "Application réduite dans la barre d'état"
+    }
+  }
+}

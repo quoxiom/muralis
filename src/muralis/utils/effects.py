@@ -18,7 +18,9 @@ def apply_effect(image_path: str, effect: str) -> Path:
     output_path = img_path.parent / f"{img_path.stem}_effect{img_path.suffix}"
     
     try:
-        with Image.open(img_path) as img:
+        with Image.open(img_path) as opened:
+            img: Image.Image = opened
+            
             # Convert to RGB if necessary
             if img.mode != 'RGB':
                 img = img.convert('RGB')
@@ -27,18 +29,18 @@ def apply_effect(image_path: str, effect: str) -> Path:
             if effect == 'blur':
                 img = img.filter(ImageFilter.GaussianBlur(radius=5))
             elif effect == 'darken':
-                enhancer = ImageEnhance.Brightness(img)
-                img = enhancer.enhance(0.6)
+                brightness = ImageEnhance.Brightness(img)
+                img = brightness.enhance(0.6)
             elif effect == 'grayscale':
                 img = img.convert('L').convert('RGB')
             elif effect == 'vignette':
                 # Create vignette effect
                 img = _apply_vignette(img)
             elif effect == 'vibrant':
-                enhancer = ImageEnhance.Color(img)
-                img = enhancer.enhance(1.3)
-                enhancer = ImageEnhance.Contrast(img)
-                img = enhancer.enhance(1.1)
+                color = ImageEnhance.Color(img)
+                img = color.enhance(1.3)
+                contrast = ImageEnhance.Contrast(img)
+                img = contrast.enhance(1.1)
             
             # Save processed image
             img.save(output_path, quality=90)

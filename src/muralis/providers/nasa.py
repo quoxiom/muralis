@@ -1,7 +1,7 @@
 """NASA Astronomy Picture of the Day provider."""
 
 import requests
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from datetime import datetime
 from .base import WallpaperProvider
 
@@ -18,7 +18,7 @@ class NasaProvider(WallpaperProvider):
     def get_daily_url(self, resolution: str = "1920x1080") -> Optional[str]:
         """Get NASA APOD image URL."""
         try:
-            params = {
+            params: Dict[str, Any] = {
                 'api_key': self.API_KEY,
                 'hd': True
             }
@@ -28,7 +28,12 @@ class NasaProvider(WallpaperProvider):
             
             # Check if it's an image (not video)
             if data.get('media_type') == 'image':
-                return data.get('hdurl') or data.get('url')
+                hdurl = data.get('hdurl')
+                if isinstance(hdurl, str) and hdurl:
+                    return hdurl
+                url = data.get('url')
+                if isinstance(url, str) and url:
+                    return url
             return None
         except Exception as e:
             print(f"Error fetching NASA APOD: {e}")

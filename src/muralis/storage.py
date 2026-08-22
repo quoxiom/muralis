@@ -30,18 +30,19 @@ class StorageManager:
         
         deleted_count = 0
         
-        # Delete by age first
-        cutoff = datetime.now() - timedelta(days=max_days)
-        for f in files:
-            if datetime.fromtimestamp(f.stat().st_mtime) < cutoff:
-                f.unlink()
-                deleted_count += 1
+        # Delete by age first (max_days == 0 means unlimited/disabled)
+        if max_days > 0:
+            cutoff = datetime.now() - timedelta(days=max_days)
+            for f in files:
+                if datetime.fromtimestamp(f.stat().st_mtime) < cutoff:
+                    f.unlink()
+                    deleted_count += 1
         
         # Refresh file list
         files = self.get_all_wallpapers()
         
-        # Delete by count (oldest first)
-        if len(files) > max_files:
+        # Delete by count (oldest first); max_files == 0 means unlimited/disabled
+        if max_files > 0 and len(files) > max_files:
             to_delete = files[max_files:]
             for f in to_delete:
                 f.unlink()

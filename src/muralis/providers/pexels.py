@@ -35,9 +35,13 @@ class PexelsProvider(WallpaperProvider):
                 # Get largest available size
                 src = photo.get('src', {})
                 for size in ['original', 'large2x', 'large', 'medium']:
-                    if size in src and src[size]:
-                        return src[size]
-                return src.get('original')
+                    url = src.get(size)
+                    if isinstance(url, str) and url:
+                        return url
+                url = src.get('original')
+                if isinstance(url, str):
+                    return url
+                return None
             return None
             
         except Exception as e:
