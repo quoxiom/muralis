@@ -5,19 +5,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable, Optional
 
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QResizeEvent
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
+    QWidget, QVBoxLayout, QLabel, QPushButton, QSizePolicy
 )
 
 from muralis.i18n import t
-from .icons import make_icon, ICON_IDLE
 
 MODIFIED_TIME_FORMAT = "%d %b %Y %H:%M:%S"
 CONFIG_PATH = Path.home() / ".config" / "muralis" / "config.ini"
 
-TOOL_BUTTON_SIZE = 34
 PREVIEW_SIZE = (800, 450)  # fallback for freshly-downloaded images without a saved size
 
 
@@ -54,19 +52,6 @@ class PreviewWidget(QWidget):
 
         layout = QVBoxLayout(self)
 
-        # Top toolbar: icon-only actions
-        toolbar = QHBoxLayout()
-        toolbar.setSpacing(6)
-        self.refresh_btn = self._tool_button("refresh", t("gui.preview.refresh"))
-        self.refresh_btn.clicked.connect(self.request_refresh)
-        toolbar.addWidget(self.refresh_btn)
-        self.open_folder_btn = self._tool_button(
-            "folder", t("gui.preview.open_folder"))
-        self.open_folder_btn.clicked.connect(self.open_wallpaper_folder)
-        toolbar.addWidget(self.open_folder_btn)
-        toolbar.addStretch()
-        layout.addLayout(toolbar)
-
         # Expands in both directions — the sole body of the preview.
         self.preview_label = QLabel()
         self.preview_label.setObjectName("previewImage")
@@ -77,15 +62,23 @@ class PreviewWidget(QWidget):
         self.preview_label.setToolTip("")
         layout.addWidget(self.preview_label, 1)
 
-    # ------------------------------------------------------------------
-    def _tool_button(self, icon_name: str, tooltip: str) -> QPushButton:
-        button = QPushButton()
-        button.setObjectName("iconActionButton")
-        button.setIcon(make_icon(icon_name, ICON_IDLE, 18))
-        button.setIconSize(QSize(18, 18))
-        button.setFixedSize(TOOL_BUTTON_SIZE, TOOL_BUTTON_SIZE)
-        button.setToolTip(tooltip)
+        # Action buttons (text-only, styled like the rest of the UI). They are
+        # placed right-aligned in the page header row by MainWindow._make_page.
+        self.refresh_btn = self._make_action_button(t("gui.preview.refresh"))
+        self.open_folder_btn = self._make_action_button(
+            t("gui.preview.open_folder"))
+        self.refresh_btn.clicked.connect(self.request_refresh)
+        self.open_folder_btn.clicked.connect(self.open_wallpaper_folder)
+
+    def action_buttons(self) -> list:
+        """Return the action buttons for the page header row."""
+        return [self.refresh_btn, self.open_folder_btn]
+
+    def _make_action_button(self, label: str) -> QPushButton:
+        button = QPushButton(label)
         button.setCursor(Qt.CursorShape.PointingHandCursor)
+        button.setSizePolicy(
+            QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
         return button
 
     def request_refresh(self):

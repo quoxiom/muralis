@@ -6,6 +6,7 @@ in the Settings page.
 """
 
 import configparser
+from typing import Optional
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -102,7 +103,8 @@ class MainWindow(QMainWindow):
         self.pages = [
             ("preview", self._make_page(
                 t("gui.nav.preview"), t("gui.page.preview_subtitle"),
-                self.preview_widget)),
+                self.preview_widget,
+                actions=self.preview_widget.action_buttons())),
             ("history", self._make_page(
                 t("gui.nav.history"), t("gui.page.history_subtitle"),
                 self.history_tab)),
@@ -280,11 +282,13 @@ class MainWindow(QMainWindow):
 
         return page
 
-    def _make_page(self, title: str, comment: str, widget: QWidget) -> QWidget:
+    def _make_page(self, title: str, comment: str, widget: QWidget,
+                   actions: Optional[list] = None) -> QWidget:
         """Wrap a page widget with a header.
 
         The comment (description) is placed in front of the view name, on the
-        same line, instead of below it.
+        same line. Optional ``actions`` buttons are placed right-aligned at the
+        end of the same header row.
         """
         page = QWidget()
         layout = QVBoxLayout(page)
@@ -304,6 +308,11 @@ class MainWindow(QMainWindow):
             header_row.addWidget(comment_label)
 
         header_row.addStretch()
+
+        if actions:
+            for action in actions:
+                header_row.addWidget(action)
+
         layout.addLayout(header_row)
 
         layout.addWidget(widget, 1)

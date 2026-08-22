@@ -195,8 +195,6 @@ QPushButton#toggleButton:checked { background-color: ${accent}; border-color: ${
 /* icon-only buttons */
 #iconButton { background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 4px; }
 #iconButton:hover { background-color: ${btn_hover}; }
-QPushButton#iconActionButton { background-color: ${btn_bg}; border: 1px solid ${border_strong}; border-radius: 8px; padding: 0; }
-QPushButton#iconActionButton:hover { background-color: ${btn_hover}; border-color: ${accent}; }
 
 /* ================= Navigation ================= */
 #navButton { background: transparent; color: ${text}; border: none; border-left: 2px solid transparent; border-radius: 8px; text-align: left; padding: 9px 12px; font-size: 13px; }

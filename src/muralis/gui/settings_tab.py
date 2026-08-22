@@ -274,13 +274,20 @@ class SettingsTab(QWidget):
             button.setCheckable(True)
             button.setProperty("value", values[index])
             button.setCursor(Qt.CursorShape.PointingHandCursor)
-            # Equal-size buttons: expand to share the row width evenly
             button.setSizePolicy(
-                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+                QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
             group.addButton(button)
             buttons.append(button)
-            grid.setColumnStretch(index % cols, 1)
             grid.addWidget(button, index // cols, index % cols)
+            # Center each button so the group reads as one aligned block.
+            grid.setAlignment(button, Qt.AlignmentFlag.AlignHCenter)
+
+        # Make every button in the group the same width: the largest natural
+        # width. This keeps them uniform AND stops long labels (e.g. the theme
+        # names) from being truncated.
+        max_w = max(b.sizeHint().width() for b in buttons)
+        for button in buttons:
+            button.setFixedWidth(max_w)
         return widget, buttons
 
     @staticmethod
