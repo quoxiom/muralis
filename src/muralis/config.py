@@ -65,9 +65,16 @@ class ConfigManager:
         return list(cls._instances.keys())
     
     def load(self):
-        """Load configuration from file or create default."""
+        """Load configuration from file or create default.
+
+        Reads into a fresh parser and replaces self.config so we reflect the
+        file exactly (configparser.read() would MERGE and resurrect keys that
+        were deleted on disk).
+        """
         if self.config_path.exists():
-            self.config.read(self.config_path)
+            fresh = configparser.ConfigParser()
+            fresh.read(self.config_path)
+            self.config = fresh
             self._migrate_config()
             self.validate()
         else:

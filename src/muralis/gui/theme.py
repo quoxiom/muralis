@@ -215,7 +215,7 @@ QSpinBox, QDoubleSpinBox {
     border: 1px solid ${input_border}; border-radius: 8px; padding: 5px 8px;
     selection-background-color: ${selection}; selection-color: ${text};
 }
-QSpinBox:focus, QDoubleSpinBox:focus { border: 1px solid ${accent}; }
+QSpinBox:focus, QDoubleSpinBox:focus { border: 1px solid ${focus_border}; }
 QSpinBox::up-button, QSpinBox::down-button, QDoubleSpinBox::up-button, QDoubleSpinBox::down-button { background-color: transparent; border: none; width: 18px; }
 QSpinBox::up-arrow, QDoubleSpinBox::up-arrow { image: none; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 5px solid ${text_muted}; }
 QSpinBox::down-arrow, QDoubleSpinBox::down-arrow { image: none; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid ${text_muted}; }

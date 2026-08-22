@@ -13,10 +13,8 @@ from PySide6.QtSvg import QSvgRenderer
 
 ICONS_DIR = Path(__file__).parent / "icons"
 
-# Idle greyscale + active bright + accent variants
+# Greyscale icon tint (idle). Active/accent variants come from the theme.
 ICON_IDLE = "#9e9e9e"
-ICON_ACTIVE = "#e8e8e8"
-ICON_ACCENT = "#7c6cf6"
 
 
 def render_pixmap(name: str, size: int = 18, color: str = ICON_IDLE) -> QPixmap:
@@ -40,9 +38,30 @@ def make_icon(name: str, color: str = ICON_IDLE, size: int = 18) -> QIcon:
     return icon
 
 
-def app_icon() -> QIcon:
-    """The application icon at multiple sizes (window + tray)."""
+def app_icon(tint: str = "#d4d4d4") -> QIcon:
+    """The application icon at multiple sizes (window + tray).
+
+    ``tint`` selects the glyph colour so it can be made light or dark to stay
+    visible on the current theme's surfaces.
+    """
     icon = QIcon()
     for size in (16, 24, 32, 48, 64, 128, 256):
-        icon.addPixmap(render_pixmap("muralis", size, "#ffffff"))
+        icon.addPixmap(render_pixmap("muralis", size, tint))
     return icon
+
+
+def icon_tint_for_theme(colors: dict) -> str:
+    """Pick a glyph colour that reads on the theme's window surface.
+
+    Light themes get a dark glyph, dark themes a light glyph, so it is visible
+    on both a light taskbar and a dark window.
+    """
+    try:
+        s = colors.get("window", "#ffffff")
+        s = s.lstrip("#")
+        luminance = (int(s[0:2], 16) * 299
+                     + int(s[2:4], 16) * 587
+                     + int(s[4:6], 16) * 114) / 1000
+        return "#1a1a1a" if luminance > 128 else "#e8e8e8"
+    except (ValueError, IndexError):
+        return "#d4d4d4"

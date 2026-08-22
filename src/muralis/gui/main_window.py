@@ -24,7 +24,7 @@ from .history_tab import HistoryTab
 from .preview_widget import PreviewWidget
 from .tray_icon import TrayIcon
 from .theme import ThemeManager, DEFAULT_THEME
-from .icons import app_icon, make_icon, render_pixmap, ICON_IDLE
+from .icons import app_icon, make_icon, render_pixmap, ICON_IDLE, icon_tint_for_theme
 
 CONFIG_PATH = Path.home() / ".config" / "muralis" / "config.ini"
 WALLPAPER_DIR = Path.home() / "Pictures" / "Muralis"
@@ -436,17 +436,29 @@ class MainWindow(QMainWindow):
             button.setIcon(make_icon(
                 icon_name, accent if button.isChecked() else ICON_IDLE, 18))
 
+    def _refresh_app_icon(self):
+        """Re-tint the window + tray icon for the active theme's surfaces."""
+        theme_id = self._read_config().get(
+            "gui", "theme", fallback=DEFAULT_THEME)
+        colors = self.theme_manager.load_colors(theme_id)
+        tint = icon_tint_for_theme(colors)
+        self.setWindowIcon(app_icon(tint))
+        if self.tray_icon is not None:
+            self.tray_icon.setIcon(app_icon(tint))
+
     def _apply_stored_theme(self):
         """Apply the theme saved in the config (default: reasonix)."""
         config = self._read_config()
         theme_id = config.get("gui", "theme", fallback=DEFAULT_THEME)
         if not self.theme_manager.apply(theme_id):
             self.theme_manager.apply(DEFAULT_THEME)
+        self._refresh_app_icon()
 
     def _set_theme(self, theme_id: str):
         """Apply a theme and persist the choice in the config."""
         if self.theme_manager.apply(theme_id):
             self._refresh_nav_icons()
+            self._refresh_app_icon()
             try:
                 config = self._read_config()
                 if "gui" not in config:

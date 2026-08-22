@@ -4,10 +4,10 @@
   "colors": {
     "window": "#ffffff",
     "panel": "#f4f6f8",
-    "card": "#ffffff",
+    "card": "#fafbfc",
     "card_hover": "#eef1f4",
     "preview_bg": "#e9ecef",
-    "menu_bg": "#ffffff",
+    "menu_bg": "#f8fafc",
     "nav_active_bg": "#e2e8f0",
     "tooltip_bg": "#1f1f1f",
     "input_bg": "#ffffff",
