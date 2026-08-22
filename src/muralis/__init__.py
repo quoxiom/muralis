@@ -1,6 +1,6 @@
 """Muralis - Smart Wallpaper Manager for Qutility Suite."""
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __author__ = "Qamber Haidry"
 __license__ = "MIT"
 __copyright__ = "Copyright (c) 2026 Quoxiom"

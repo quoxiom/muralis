@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="muralis",
-    version="0.3.0",
+    version="0.4.0",
     author="Qamber Haidry",
     author_email="qamber@quoxiom.com",
     description="Muralis - Smart Wallpaper Manager for Linux",
