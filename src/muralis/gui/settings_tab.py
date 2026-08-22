@@ -11,10 +11,11 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
 from PySide6.QtCore import Qt, QSignalBlocker, Signal
+from PySide6.QtGui import QFont, QFontMetrics
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QPushButton, QButtonGroup, QSpinBox,
-    QScrollArea, QFrame, QLabel, QStackedWidget, QSizePolicy
+    QScrollArea, QFrame, QLabel, QStackedWidget, QSizePolicy, QApplication
 )
 
 from muralis.i18n import t
@@ -282,17 +283,25 @@ class SettingsTab(QWidget):
             # Center each button so the group reads as one aligned block.
             grid.setAlignment(button, Qt.AlignmentFlag.AlignHCenter)
 
-        # Make every button in the group the same width: the largest natural
-        # width. This keeps them uniform AND stops long labels (e.g. the theme
-        # names) from being truncated.
-        max_w = max(b.sizeHint().width() for b in buttons)
-        for button in buttons:
-            button.setFixedWidth(max_w)
+        # Make every button in the group the same width, sized to the widest
+        # label in its BOLD form (buttons render bold when selected), so the
+        # checked text is never truncated.
+        bold = QFont(QApplication.font())
+        bold.setBold(True)
+        fm = QFontMetrics(bold)
+        max_w = max(fm.horizontalAdvance(b.text()) for b in buttons)
+        max_w += 40  # comfortable padding; check/bold metrics can drift
+        for b in buttons:
+            b.setFixedWidth(max_w)
         return widget, buttons
 
     @staticmethod
     def _toggle_button(text: str, checked: bool = False) -> QPushButton:
-        """A checkable push button styled as an on/off toggle."""
+        """A checkable push button styled as an on/off toggle.
+
+        Sized for the BOLD (selected) label so the text is never truncated
+        once the button is checked.
+        """
         button = QPushButton(text)
         button.setObjectName("toggleButton")
         button.setCheckable(True)
@@ -300,6 +309,13 @@ class SettingsTab(QWidget):
         button.setCursor(Qt.CursorShape.PointingHandCursor)
         button.setSizePolicy(
             QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        # Use the application font (which reflects the applied theme QSS font)
+        # so the bold checked label fits once the stylesheet is active.
+        bold = QFont(QApplication.font())
+        bold.setBold(True)
+        fm = QFontMetrics(bold)
+        width = fm.horizontalAdvance(text) + 40
+        button.setFixedWidth(width)
         return button
 
     def _spin(self, minimum: int, maximum: int, special_text: str):
