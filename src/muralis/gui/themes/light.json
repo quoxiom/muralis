@@ -8,8 +8,8 @@
     "card_hover": "#eef1f4",
     "preview_bg": "#e9ecef",
     "menu_bg": "#f8fafc",
-    "nav_active_bg": "#e2e8f0",
-    "tooltip_bg": "#1f1f1f",
+    "nav_active_bg": "#edeff2",
+    "tooltip_bg": "#ffffff",
     "input_bg": "#ffffff",
     "border": "#d5dbe1",
     "border_strong": "#b8c0ca",
@@ -30,7 +30,7 @@
     "scroll_handle_hover": "#9aa3ad",
     "status_bg": "#f4f6f8",
     "status_text": "#56606a",
-    "tooltip_text": "#ffffff",
+    "tooltip_text": "#23272e",
     "focus_border": "#0a7cef"
   }
 }
