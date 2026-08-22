@@ -1,22 +1,19 @@
 """GUI module for Muralis - Smart Wallpaper Manager.
 
 This module provides the graphical user interface for Muralis,
-including the main window, settings, history viewer, preview widget,
-and system tray integration.
+including the main window, settings, history viewer and preview widget.
 """
 
 from .main_window import MainWindow
 from .settings_tab import SettingsTab
 from .history_tab import HistoryTab
 from .preview_widget import PreviewWidget
-from .tray_icon import TrayIcon
 
 __all__ = [
     'MainWindow',
     'SettingsTab', 
     'HistoryTab',
     'PreviewWidget',
-    'TrayIcon',
 ]
 
 

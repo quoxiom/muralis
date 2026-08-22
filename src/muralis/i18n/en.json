@@ -163,7 +163,6 @@
       "refresh": "&Refresh Wallpaper",
       "quit": "&Quit",
       "view": "&View",
-      "show_tray": "Show &Tray Icon",
       "theme": "&Theme",
       "help": "&Help",
       "about": "&About",
@@ -235,7 +234,6 @@
       "reset": "Reset to Defaults",
       "appearance": "Appearance",
       "theme": "Theme",
-      "show_tray": "Show tray icon",
       "quit": "Quit",
       "success_title": "Success",
       "saved": "Settings saved successfully!",
@@ -246,7 +244,7 @@
         "general": "Provider and automatic update behavior.",
         "image": "Resolution and image effects.",
         "storage": "How many wallpapers are kept and for how long.",
-        "appearance": "Interface theme and tray icon.",
+        "appearance": "Interface theme.",
         "provider": "Which service supplies your wallpaper.",
         "auto_update": "Fetch a new wallpaper automatically each day.",
         "randomize": "Pick a random provider every day.",
@@ -256,8 +254,7 @@
         "save_downloads": "Keep a local copy in ~/Pictures/Muralis.",
         "max_files": "Oldest files are removed beyond this limit.",
         "max_days": "Files older than this are removed.",
-        "theme": "Color theme for the interface.",
-        "show_tray": "Keep Muralis in the system tray when the window is closed."
+        "theme": "Color theme for the interface."
       }
     },
     "about": {
@@ -274,13 +271,6 @@
       "error_title": "Error",
       "failed_update": "Failed to update wallpaper",
       "failed_update_detail": "Failed to update wallpaper:\n{error}"
-    },
-    "tray": {
-      "refresh": "🔄 Refresh Wallpaper",
-      "show": "📂 Show Muralis",
-      "quit": "🚪 Quit",
-      "tooltip": "Muralis - Wallpaper Manager",
-      "minimized": "Application minimized to system tray"
     }
   }
 }

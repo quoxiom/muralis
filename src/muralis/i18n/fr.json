@@ -163,7 +163,6 @@
       "refresh": "&Actualiser le fond d'écran",
       "quit": "&Quitter",
       "view": "&Affichage",
-      "show_tray": "Afficher l'&icône de la barre d'état",
       "theme": "&Thème",
       "help": "&Aide",
       "about": "&À propos",
@@ -235,7 +234,6 @@
       "reset": "Réinitialiser",
       "appearance": "Apparence",
       "theme": "Thème",
-      "show_tray": "Icône de la barre d'état",
       "quit": "Quitter",
       "success_title": "Succès",
       "saved": "Paramètres enregistrés avec succès !",
@@ -246,7 +244,7 @@
         "general": "Fournisseur et comportement des mises à jour automatiques.",
         "image": "Résolution et effets d'image.",
         "storage": "Combien de fonds d'écran sont conservés et pendant combien de temps.",
-        "appearance": "Thème de l'interface et icône de la barre d'état.",
+        "appearance": "Thème de l'interface.",
         "provider": "Quel service fournit votre fond d'écran.",
         "auto_update": "Télécharger automatiquement un nouveau fond d'écran chaque jour.",
         "randomize": "Choisir un fournisseur au hasard chaque jour.",
@@ -256,8 +254,7 @@
         "save_downloads": "Conserver une copie locale dans ~/Pictures/Muralis.",
         "max_files": "Les fichiers les plus anciens sont supprimés au-delà de cette limite.",
         "max_days": "Les fichiers plus anciens que ce nombre de jours sont supprimés.",
-        "theme": "Thème de couleurs de l'interface.",
-        "show_tray": "Garder Muralis dans la barre d'état lorsque la fenêtre est fermée."
+        "theme": "Thème de couleurs de l'interface."
       }
     },
     "about": {
@@ -274,13 +271,6 @@
       "error_title": "Erreur",
       "failed_update": "Échec de la mise à jour du fond d'écran",
       "failed_update_detail": "Échec de la mise à jour du fond d'écran :\n{error}"
-    },
-    "tray": {
-      "refresh": "🔄 Actualiser le fond d'écran",
-      "show": "📂 Afficher Muralis",
-      "quit": "🚪 Quitter",
-      "tooltip": "Muralis - Gestionnaire de fonds d'écran",
-      "minimized": "Application réduite dans la barre d'état"
     }
   }
 }

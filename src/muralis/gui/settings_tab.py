@@ -88,7 +88,6 @@ class SettingsTab(QWidget):
 
     def __init__(self, theme_manager=None,
                  on_theme_change: Optional[Callable[[str], None]] = None,
-                 on_tray_toggle: Optional[Callable[[bool], None]] = None,
                  on_quit: Optional[Callable[[], None]] = None,
                  on_settings_changed: Optional[Callable[[], None]] = None,
                  parent=None):
@@ -97,7 +96,6 @@ class SettingsTab(QWidget):
         Args:
             theme_manager: ThemeManager used to list available themes
             on_theme_change: Called with the new theme id when changed
-            on_tray_toggle: Called with the new tray visibility
             on_quit: Called when the user requests to quit
             on_settings_changed: Called after settings are saved or reset
             parent: Parent widget
@@ -107,7 +105,6 @@ class SettingsTab(QWidget):
         self.config_path = Path.home() / ".config/muralis/config.ini"
         self.theme_manager = theme_manager
         self.on_theme_change = on_theme_change
-        self.on_tray_toggle = on_tray_toggle
         self.on_quit = on_quit
         self.on_settings_changed = on_settings_changed
 
@@ -371,11 +368,6 @@ class SettingsTab(QWidget):
                   description=t("gui.settings.desc.theme"))
         layout.addSpacing(6)
 
-        self.tray_toggle = self._toggle_button(t("gui.settings.show_tray"))
-        self.tray_toggle.toggled.connect(self._on_tray_toggled)
-        self._row(layout, t("gui.settings.show_tray"), self.tray_toggle,
-                  description=t("gui.settings.desc.show_tray"))
-
     def _build_actions(self, layout: QVBoxLayout):
         """Apply / reset / quit actions below the content panes."""
         button_layout = QHBoxLayout()
@@ -459,10 +451,6 @@ class SettingsTab(QWidget):
         if checked and self.on_theme_change:
             self.on_theme_change(theme_id)
 
-    def _on_tray_toggled(self, checked: bool):
-        if self.on_tray_toggle:
-            self.on_tray_toggle(checked)
-
     def _on_quit_clicked(self):
         if self.on_quit:
             self.on_quit()
@@ -489,7 +477,6 @@ class SettingsTab(QWidget):
         self._set_toggle(self.randomize_toggle, False)
         self._set_toggle(self.effects_toggle, False)
         self._set_toggle(self.save_downloads_toggle, True)
-        self._set_toggle(self.tray_toggle, True)
         self.max_files_spin.setValue(100)
         self.max_days_spin.setValue(30)
 
@@ -532,8 +519,6 @@ class SettingsTab(QWidget):
                 self.theme_buttons,
                 config.get('gui', 'theme', fallback=DEFAULT_THEME),
                 fallback=DEFAULT_THEME)
-            self._set_toggle(self.tray_toggle,
-                             config.getboolean('gui', 'show_tray', fallback=True))
 
         self._update_effect_state(self.effects_toggle.isChecked())
 
@@ -574,7 +559,6 @@ class SettingsTab(QWidget):
             config['gui'] = {}
         config['gui']['theme'] = self._checked_value(
             self.theme_buttons, DEFAULT_THEME)
-        config['gui']['show_tray'] = str(self.tray_toggle.isChecked()).lower()
 
         # Save config
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -600,8 +584,6 @@ class SettingsTab(QWidget):
         if self.on_theme_change:
             self.on_theme_change(
                 self._checked_value(self.theme_buttons, DEFAULT_THEME))
-        if self.on_tray_toggle:
-            self.on_tray_toggle(self.tray_toggle.isChecked())
         if self.on_settings_changed:
             self.on_settings_changed()
         info(self, t("gui.settings.success_title"),

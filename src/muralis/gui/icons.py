@@ -39,7 +39,7 @@ def make_icon(name: str, color: str = ICON_IDLE, size: int = 18) -> QIcon:
 
 
 def app_icon(tint: str = "#d4d4d4") -> QIcon:
-    """The application icon at multiple sizes (window + tray).
+    """The application icon at multiple sizes (window + taskbar).
 
     ``tint`` selects the glyph colour so it can be made light or dark to stay
     visible on the current theme's surfaces.

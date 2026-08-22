@@ -22,7 +22,6 @@ from muralis.i18n import t
 from .settings_tab import SettingsTab
 from .history_tab import HistoryTab
 from .preview_widget import PreviewWidget
-from .tray_icon import TrayIcon
 from .theme import ThemeManager, DEFAULT_THEME
 from .icons import app_icon, make_icon, render_pixmap, ICON_IDLE, icon_tint_for_theme
 
@@ -94,7 +93,6 @@ class MainWindow(QMainWindow):
         self.settings_tab = SettingsTab(
             theme_manager=self.theme_manager,
             on_theme_change=self._set_theme,
-            on_tray_toggle=self.toggle_tray_icon,
             on_quit=self._request_quit,
             on_settings_changed=self._update_status_bar,
             parent=self
@@ -120,15 +118,8 @@ class MainWindow(QMainWindow):
         # Create status bar with live info
         self._build_status_bar()
 
-        # Create system tray icon
-        self.tray_icon = TrayIcon(refresh_callback=self._refresh_wallpaper)
-
         # Apply the stored theme (after widgets exist)
         self._apply_stored_theme()
-
-        # Tray visibility from config
-        self.tray_icon.setVisible(
-            self._read_config().getboolean("gui", "show_tray", fallback=True))
 
         # Setup auto-refresh timer
         self.refresh_timer = QTimer()
@@ -437,14 +428,12 @@ class MainWindow(QMainWindow):
                 icon_name, accent if button.isChecked() else ICON_IDLE, 18))
 
     def _refresh_app_icon(self):
-        """Re-tint the window + tray icon for the active theme's surfaces."""
+        """Re-tint the window icon for the active theme's surfaces."""
         theme_id = self._read_config().get(
             "gui", "theme", fallback=DEFAULT_THEME)
         colors = self.theme_manager.load_colors(theme_id)
         tint = icon_tint_for_theme(colors)
         self.setWindowIcon(app_icon(tint))
-        if self.tray_icon is not None:
-            self.tray_icon.setIcon(app_icon(tint))
 
     def _apply_stored_theme(self):
         """Apply the theme saved in the config (default: reasonix)."""
@@ -506,34 +495,10 @@ class MainWindow(QMainWindow):
         """Auto-refresh the preview (not the wallpaper itself)."""
         self.preview_widget.refresh_preview()
 
-    def toggle_tray_icon(self, show: bool):
-        """Show/hide the tray icon and persist the choice."""
-        self.tray_icon.setVisible(show)
-        try:
-            config = self._read_config()
-            if "gui" not in config:
-                config["gui"] = {}
-            config["gui"]["show_tray"] = str(show).lower()
-            CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-            with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-                config.write(f)
-        except OSError:
-            pass
-
     def _request_quit(self):
         """Quit the application (from the Settings page)."""
-        self.tray_icon.hide()
         self.close()
 
     def closeEvent(self, event):
-        """Handle window close event."""
-        # Hide to tray instead of quitting
-        if self.tray_icon.isVisible():
-            self.hide()
-            self.tray_icon.show_message(
-                t("gui.nav.brand"),
-                t("gui.tray.minimized")
-            )
-            event.ignore()
-        else:
-            event.accept()
+        """Close the window and quit the application."""
+        event.accept()
