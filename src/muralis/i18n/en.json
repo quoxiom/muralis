@@ -212,7 +212,7 @@
       }
     },
     "history": {
-      "refresh": "🔄 Refresh History",
+      "refresh": "Refresh History",
       "tip": "Double-click to set as your wallpaper",
       "empty": "No wallpapers found. Run 'muralis --once' first.",
       "empty_short": "No wallpapers found yet"

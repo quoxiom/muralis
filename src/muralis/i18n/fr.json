@@ -212,7 +212,7 @@
       }
     },
     "history": {
-      "refresh": "🔄 Actualiser l'historique",
+      "refresh": "Actualiser l'historique",
       "tip": "Double-cliquez pour définir comme fond d'écran",
       "empty": "Aucun fond d'écran trouvé. Exécutez 'muralis --once' d'abord.",
       "empty_short": "Aucun fond d'écran trouvé pour le moment"
