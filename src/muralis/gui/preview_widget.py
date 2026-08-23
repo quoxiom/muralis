@@ -114,7 +114,7 @@ class PreviewWidget(QWidget):
 
             # Name + rich details on hover, not as cluttering on-screen text.
             self._tooltip = (
-                f"{image_path.name}\n"
+                f"{t('gui.preview.tooltip.name', name=image_path.name)}\n"
                 f"{t('gui.preview.tooltip.downloaded', time=downloaded)}\n"
                 f"{t('gui.preview.tooltip.size', kb=size_kb)}\n"
                 f"{t('gui.preview.tooltip.provider', name=provider)}"

@@ -94,7 +94,6 @@ class MainWindow(QMainWindow):
         self.settings_tab = SettingsTab(
             theme_manager=self.theme_manager,
             on_theme_change=self._set_theme,
-            on_quit=self._request_quit,
             on_settings_changed=self._update_status_bar,
             parent=self
         )
@@ -107,10 +106,12 @@ class MainWindow(QMainWindow):
                 actions=self.preview_widget.action_buttons())),
             ("history", self._make_page(
                 t("gui.nav.history"), t("gui.page.history_subtitle"),
-                self.history_tab)),
+                self.history_tab,
+                actions=self.history_tab.action_buttons())),
             ("settings", self._make_page(
                 t("gui.nav.settings"), t("gui.page.settings_subtitle"),
-                self.settings_tab)),
+                self.settings_tab,
+                actions=self.settings_tab.action_buttons())),
             ("about", self._make_page(
                 t("gui.nav.about"), "", self.about_page)),
         ]
@@ -503,10 +504,6 @@ class MainWindow(QMainWindow):
     def _auto_refresh_preview(self):
         """Auto-refresh the preview (not the wallpaper itself)."""
         self.preview_widget.refresh_preview()
-
-    def _request_quit(self):
-        """Quit the application (from the Settings page)."""
-        self.close()
 
     def closeEvent(self, event):
         """Close the window and quit the application."""

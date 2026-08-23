@@ -31,7 +31,13 @@ PROVIDERS: List[Tuple[str, str]] = [
     ("unsplash", "gui.provider.unsplash"),
 ]
 
-RESOLUTIONS = ["1920x1080", "2560x1440", "3840x2160", "4096x2160", "7680x4320"]
+RESOLUTIONS = [
+    ("FHD", "1920x1080"),
+    ("2K", "2560x1440"),
+    ("2.5K", "3840x2160"),
+    ("4K", "4096x2160"),
+    ("8K", "7680x4320"),
+]
 EFFECTS = ["none", "blur", "darken", "grayscale", "vibrant", "vignette"]
 
 # Category order: key -> (title key, description key)
@@ -89,7 +95,6 @@ class SettingsTab(QWidget):
 
     def __init__(self, theme_manager=None,
                  on_theme_change: Optional[Callable[[str], None]] = None,
-                 on_quit: Optional[Callable[[], None]] = None,
                  on_settings_changed: Optional[Callable[[], None]] = None,
                  parent=None):
         """Initialize the settings tab.
@@ -97,7 +102,6 @@ class SettingsTab(QWidget):
         Args:
             theme_manager: ThemeManager used to list available themes
             on_theme_change: Called with the new theme id when changed
-            on_quit: Called when the user requests to quit
             on_settings_changed: Called after settings are saved or reset
             parent: Parent widget
         """
@@ -106,7 +110,6 @@ class SettingsTab(QWidget):
         self.config_path = Path.home() / ".config/muralis/config.ini"
         self.theme_manager = theme_manager
         self.on_theme_change = on_theme_change
-        self.on_quit = on_quit
         self.on_settings_changed = on_settings_changed
 
         self.nav_items: Dict[str, _NavItem] = {}
@@ -123,7 +126,7 @@ class SettingsTab(QWidget):
         self._build_panes(body)
 
         root.addLayout(body, 1)
-        self._build_actions(root)
+        self._build_action_buttons()
 
         # Load current settings
         self.load_settings()
@@ -226,15 +229,23 @@ class SettingsTab(QWidget):
     @staticmethod
     def _row(layout: QVBoxLayout, label: str, control: QWidget,
              description: str = ""):
-        """A setting row: label (and description) left, control right."""
+        """A setting row: label (and description) left, control right.
+
+        The label/description block and the control are top-aligned so the
+        description sits directly under the setting name even when the control
+        is taller (e.g. multi-line button grids).
+        """
         row = QWidget()
         row_layout = QHBoxLayout(row)
         row_layout.setContentsMargins(0, 8, 0, 8)
         row_layout.setSpacing(16)
+        # Align both columns to the top so the description hugs the label.
+        row_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         left = QVBoxLayout()
-        left.setSpacing(2)
+        left.setSpacing(0)
         left.setContentsMargins(0, 0, 0, 0)
+        left.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         label_widget = QLabel(label)
         label_widget.setObjectName("rowLabel")
@@ -244,18 +255,21 @@ class SettingsTab(QWidget):
             desc_widget = QLabel(description)
             desc_widget.setObjectName("rowDesc")
             desc_widget.setWordWrap(True)
+            desc_widget.setAlignment(Qt.AlignmentFlag.AlignTop)
             left.addWidget(desc_widget)
 
         row_layout.addLayout(left, 1)
-        row_layout.addWidget(control, 0, Qt.AlignmentFlag.AlignRight)
+        row_layout.addWidget(control, 0, Qt.AlignmentFlag.AlignTop)
         layout.addWidget(row)
 
     def _segmented(self, labels: List[str], cols: int,
-                   values: Optional[List[str]] = None) -> Tuple[QWidget, List[QPushButton]]:
+                   values: Optional[List[str]] = None,
+                   tooltips: Optional[List[str]] = None) -> Tuple[QWidget, List[QPushButton]]:
         """A grid of exclusive selection buttons.
 
         Each button carries its value in a 'value' property; labels may differ
         from values (e.g. localized provider names mapping to config keys).
+        An optional ``tooltips`` list sets each button's hover tooltip.
         """
         if values is None:
             values = list(labels)
@@ -274,6 +288,8 @@ class SettingsTab(QWidget):
             button = QPushButton(label)
             button.setCheckable(True)
             button.setProperty("value", values[index])
+            if tooltips:
+                button.setToolTip(tooltips[index])
             button.setCursor(Qt.CursorShape.PointingHandCursor)
             button.setSizePolicy(
                 QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
@@ -333,6 +349,11 @@ class SettingsTab(QWidget):
         provider_widget, self.provider_buttons = self._segmented(
             [t(key) for _, key in PROVIDERS], cols=4,
             values=[key for key, _ in PROVIDERS])
+        # Disable providers that need an API key but aren't configured.
+        enabled = {key: self._provider_configured(key) for key, _ in PROVIDERS}
+        for button, (key, _) in zip(self.provider_buttons, PROVIDERS):
+            if not enabled[key]:
+                button.setEnabled(False)
         self._row(layout, t("gui.settings.provider"), provider_widget,
                   description=t("gui.settings.desc.provider"))
         layout.addSpacing(6)
@@ -347,8 +368,12 @@ class SettingsTab(QWidget):
                   description=t("gui.settings.desc.randomize"))
 
     def _build_image_rows(self, layout: QVBoxLayout):
+        resolution_labels = [label for label, _ in RESOLUTIONS]
+        resolution_values = [res for _, res in RESOLUTIONS]
         resolution_widget, self.resolution_buttons = self._segmented(
-            RESOLUTIONS, cols=3)
+            resolution_labels, cols=3,
+            values=resolution_values,
+            tooltips=resolution_values)
         self._row(layout, t("gui.settings.resolution"), resolution_widget,
                   description=t("gui.settings.desc.resolution"))
         layout.addSpacing(6)
@@ -391,27 +416,18 @@ class SettingsTab(QWidget):
                   description=t("gui.settings.desc.theme"))
         layout.addSpacing(6)
 
-    def _build_actions(self, layout: QVBoxLayout):
-        """Apply / reset / quit actions below the content panes."""
-        button_layout = QHBoxLayout()
-        button_layout.setContentsMargins(20, 10, 20, 14)
-
+    def _build_action_buttons(self):
+        """Create Apply/Restore buttons (placed top-right in the page header)."""
         self.apply_btn = QPushButton(t("gui.settings.apply"))
         self.apply_btn.setObjectName("primaryButton")
         self.apply_btn.clicked.connect(self.save_settings)
-        button_layout.addWidget(self.apply_btn)
 
         self.reset_btn = QPushButton(t("gui.settings.reset"))
         self.reset_btn.clicked.connect(self.reset_settings)
-        button_layout.addWidget(self.reset_btn)
 
-        button_layout.addStretch()
-
-        self.quit_btn = QPushButton(t("gui.settings.quit"))
-        self.quit_btn.clicked.connect(self._on_quit_clicked)
-        button_layout.addWidget(self.quit_btn)
-
-        layout.addLayout(button_layout)
+    def action_buttons(self) -> list:
+        """Action buttons for the page header row (Apply, Restore, top-right)."""
+        return [self.apply_btn, self.reset_btn]
 
     # ------------------------------------------------------------------
     # Navigation / helpers
@@ -423,6 +439,16 @@ class SettingsTab(QWidget):
         pane = self.panes.get(key)
         if pane is not None:
             self.stack.setCurrentWidget(pane)
+
+    def _provider_configured(self, provider: str) -> bool:
+        """True if the provider can be used (has whatever API key it needs)."""
+        try:
+            from muralis.config import ConfigManager
+            from muralis.utils.api_keys import APIKeyManager
+            config = ConfigManager(str(self.config_path))
+            return APIKeyManager(config).is_configured(provider)
+        except Exception:
+            return False
 
     def _available_themes(self) -> List[str]:
         if self.theme_manager is None:
@@ -474,13 +500,8 @@ class SettingsTab(QWidget):
         if checked and self.on_theme_change:
             self.on_theme_change(theme_id)
 
-    def _on_quit_clicked(self):
-        if self.on_quit:
-            self.on_quit()
-
     # ------------------------------------------------------------------
-    # Persistence
-    # ------------------------------------------------------------------
+    # Persistence    # ------------------------------------------------------------------
     def _load_raw(self) -> configparser.ConfigParser:
         config = configparser.ConfigParser()
         if self.config_path.exists():

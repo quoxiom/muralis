@@ -170,7 +170,7 @@
     },
     "page": {
       "preview_subtitle": "Fond d'écran actuel et commandes d'actualisation",
-      "history_subtitle": "Fonds d'écran téléchargés récemment",
+      "history_subtitle": "Fonds d'écran téléchargés récemment. Double-cliquez sur une image pour la définir comme fond d'écran",
       "settings_subtitle": "Fournisseurs, image et options de stockage"
     },
     "status": {
@@ -205,6 +205,7 @@
       "none_hint": "Aucun fond d'écran trouvé\nExécutez 'muralis --once' d'abord",
       "none_downloaded": "Aucun fond d'écran téléchargé pour le moment",
       "tooltip": {
+        "name": "Nom : {name}",
         "downloaded": "Téléchargé : {time}",
         "size": "Taille : {kb:.1f} Ko",
         "provider": "Fournisseur : {name}"
@@ -212,9 +213,9 @@
     },
     "history": {
       "refresh": "🔄 Actualiser l'historique",
+      "tip": "Double-cliquez pour définir comme fond d'écran",
       "empty": "Aucun fond d'écran trouvé. Exécutez 'muralis --once' d'abord.",
-      "empty_short": "Aucun fond d'écran trouvé pour le moment",
-      "set_wallpaper": "Définir comme fond d'écran"
+      "empty_short": "Aucun fond d'écran trouvé pour le moment"
     },
     "settings": {
       "general": "Général",
@@ -234,7 +235,6 @@
       "reset": "Réinitialiser",
       "appearance": "Apparence",
       "theme": "Thème",
-      "quit": "Quitter",
       "success_title": "Succès",
       "saved": "Paramètres enregistrés avec succès !",
       "reset_title": "Réinitialiser les paramètres",

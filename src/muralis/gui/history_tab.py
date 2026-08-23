@@ -1,173 +1,185 @@
 """History tab for Muralis GUI."""
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QGridLayout, QLabel,
-    QPushButton, QScrollArea, QFrame, QSizePolicy
-)
+import configparser
+from datetime import datetime
+from pathlib import Path
+from typing import Callable, Optional
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
-from pathlib import Path
-from typing import Optional, Callable
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QGridLayout, QLabel,
+    QPushButton, QScrollArea, QFrame
+)
 
 from muralis.i18n import t
 
+MODIFIED_TIME_FORMAT = "%d %b %Y %H:%M:%S"
+CONFIG_PATH = Path.home() / ".config" / "muralis" / "config.ini"
+
 
 def _safe_mtime(path: Path) -> float:
-    """Modified time, tolerating files that vanish between glob and stat."""
     try:
         return path.stat().st_mtime
     except OSError:
         return 0.0
 
 
+def _provider_name() -> str:
+    """Localized label for the configured provider."""
+    provider = "bing"
+    try:
+        if CONFIG_PATH.exists():
+            config = configparser.ConfigParser()
+            config.read(CONFIG_PATH)
+            provider = config.get("general", "provider", fallback="bing")
+    except (configparser.Error, OSError):
+        pass
+    localized = t(f"gui.provider.{provider}")
+    return provider if localized.startswith("gui.provider") else localized
+
+
+class _Thumb(QFrame):
+    """A wallpaper thumbnail: click/double-click sets it as wallpaper."""
+
+    def __init__(self, path: Path, applied_cb: Optional[Callable], parent=None):
+        super().__init__(parent)
+        self.setObjectName("thumbFrame")
+        self._path = path
+        self._applied_cb = applied_cb
+
+        layout = QVBoxLayout(self)
+
+        pixmap = QPixmap(str(path))
+        if not pixmap.isNull():
+            scaled = pixmap.scaled(
+                200, 120,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            image_label = QLabel()
+            image_label.setPixmap(scaled)
+            image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            image_label.setToolTip(self._build_tooltip())
+            layout.addWidget(image_label)
+
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+    def _build_tooltip(self) -> str:
+        stat = self._path.stat()
+        size_kb = stat.st_size / 1024
+        downloaded = datetime.fromtimestamp(stat.st_mtime).strftime(
+            MODIFIED_TIME_FORMAT)
+        provider = _provider_name()
+        return (
+            f"{t('gui.preview.tooltip.name', name=self._path.name)}\n"
+            f"{t('gui.preview.tooltip.downloaded', time=downloaded)}\n"
+            f"{t('gui.preview.tooltip.size', kb=size_kb)}\n"
+            f"{t('gui.preview.tooltip.provider', name=provider)}\n"
+            f"{t('gui.history.tip')}"
+        )
+
+    def _set(self):
+        from muralis.setter import get_wallpaper_setter
+        setter = get_wallpaper_setter()
+        if setter.set_wallpaper(str(self._path)):
+            if self._applied_cb:
+                self._applied_cb()
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._set()
+        super().mouseDoubleClickEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton and \
+                self.rect().contains(event.position().toPoint()):
+            self._set()
+        super().mouseReleaseEvent(event)
+
+
 class HistoryTab(QWidget):
     """History tab showing past wallpapers."""
-    
+
     def __init__(self, refresh_callback: Optional[Callable] = None,
                  wallpaper_applied_callback: Optional[Callable] = None,
                  parent=None):
         """Initialize the history tab.
 
         Args:
-            refresh_callback: Called to fetch a NEW wallpaper (refresh button).
-            wallpaper_applied_callback: Called after "Set as wallpaper" so the
-                preview updates WITHOUT re-downloading from the provider.
+            refresh_callback: Called to fetch a NEW wallpaper (Refresh).
+            wallpaper_applied_callback: Called after setting a wallpaper so the
+                preview updates WITHOUT re-downloading.
             parent: Parent widget
         """
         super().__init__(parent)
 
         self.refresh_callback = refresh_callback
         self.wallpaper_applied_callback = wallpaper_applied_callback
-        
+
+        # Refresh button (placed in the page header, top-right, by the caller).
+        self.refresh_btn = QPushButton(t("gui.history.refresh"))
+        self.refresh_btn.clicked.connect(self._on_refresh_clicked)
+
         layout = QVBoxLayout(self)
-        
-        # Scroll area for thumbnails
+
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        
+
         self.thumbnails_widget = QWidget()
         self.thumbnails_layout = QGridLayout(self.thumbnails_widget)
         scroll.setWidget(self.thumbnails_widget)
-        
+
         layout.addWidget(scroll)
-        
-        # Refresh button (compact, consistent with other button styles)
-        self.refresh_btn = QPushButton(t("gui.history.refresh"))
-        self.refresh_btn.setSizePolicy(
-            QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
-        self.refresh_btn.clicked.connect(self._on_refresh_clicked)
-        layout.addWidget(self.refresh_btn, 0, Qt.AlignmentFlag.AlignLeft)
-        
-        # Load history
+
         self.refresh_history()
-    
+
+    def action_buttons(self) -> list:
+        """Action buttons for the page header row (Refresh, top-right)."""
+        return [self.refresh_btn]
+
     def _clear_thumbnails(self):
-        """Clear all thumbnails from the layout."""
         if not self.thumbnails_layout:
             return
-        
-        # Remove all items from the layout
         while self.thumbnails_layout.count():
             item = self.thumbnails_layout.takeAt(0)
             if item:
                 widget = item.widget()
                 if widget:
                     widget.deleteLater()
-    
+
     def _on_refresh_clicked(self):
-        """Handle refresh button click."""
         if self.refresh_callback:
             self.refresh_callback()
         else:
             self.refresh_history()
-    
+
     def refresh_history(self):
-        """Refresh the history display."""
-        # Clear existing thumbnails
         self._clear_thumbnails()
-        
-        # Load wallpapers
+
         wallpaper_dir = Path.home() / "Pictures" / "Muralis"
-        
         if not wallpaper_dir.exists():
             no_wallpapers = QLabel(t("gui.history.empty"))
             no_wallpapers.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.thumbnails_layout.addWidget(no_wallpapers, 0, 0)
             return
-        
+
         wallpapers = sorted(
             wallpaper_dir.glob("muralis_*.jpg"),
             key=_safe_mtime,
-            reverse=True
+            reverse=True,
         )
-        
         if not wallpapers:
             no_wallpapers = QLabel(t("gui.history.empty_short"))
             no_wallpapers.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.thumbnails_layout.addWidget(no_wallpapers, 0, 0)
             return
-        
-        # Display thumbnails in a grid (4 columns)
+
         cols = 4
         for i, wallpaper in enumerate(wallpapers[:50]):  # Limit to 50
             row = i // cols
             col = i % cols
-            
-            # Create frame for each thumbnail
-            frame = self._create_thumbnail_frame(wallpaper, i)
-            self.thumbnails_layout.addWidget(frame, row, col)
-    
-    def _create_thumbnail_frame(self, wallpaper_path: Path, index: int) -> QFrame:
-        """Create a thumbnail frame for a wallpaper.
-        
-        Args:
-            wallpaper_path: Path to the wallpaper image
-            index: Index for unique identification
-            
-        Returns:
-            QFrame containing the thumbnail
-        """
-        frame = QFrame()
-        frame.setObjectName("thumbFrame")
-        frame_layout = QVBoxLayout(frame)
-        
-        # Thumbnail image
-        pixmap = QPixmap(str(wallpaper_path))
-        if not pixmap.isNull():
-            scaled = pixmap.scaled(
-                200, 120,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            image_label = QLabel()
-            image_label.setPixmap(scaled)
-            image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            frame_layout.addWidget(image_label)
-        
-        # File info
-        name = wallpaper_path.name
-        if len(name) > 35:
-            name = name[:32] + "..."
-        info_label = QLabel(name)
-        info_label.setObjectName("thumbInfo")
-        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        frame_layout.addWidget(info_label)
-        
-        # Set as wallpaper button
-        set_btn = QPushButton(t("gui.history.set_wallpaper"))
-        set_btn.clicked.connect(lambda checked, path=wallpaper_path: self._set_as_wallpaper(path))
-        frame_layout.addWidget(set_btn)
-        
-        return frame
-    
-    def _set_as_wallpaper(self, wallpaper_path: Path):
-        """Set a selected wallpaper from history (without re-downloading)."""
-        from muralis.setter import get_wallpaper_setter
-
-        setter = get_wallpaper_setter()
-        if setter.set_wallpaper(str(wallpaper_path)):
-            # Update the preview to show the applied image — do NOT re-fetch.
-            if self.wallpaper_applied_callback:
-                self.wallpaper_applied_callback()
+            thumb = _Thumb(wallpaper, self.wallpaper_applied_callback)
+            self.thumbnails_layout.addWidget(thumb, row, col)

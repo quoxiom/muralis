@@ -170,7 +170,7 @@
     },
     "page": {
       "preview_subtitle": "Current wallpaper and refresh controls",
-      "history_subtitle": "Recently downloaded wallpapers",
+      "history_subtitle": "Recently downloaded wallpapers. Double-Click an image to set it as your wallpaper",
       "settings_subtitle": "Providers, image and storage options"
     },
     "status": {
@@ -205,6 +205,7 @@
       "none_hint": "No wallpaper found\nRun 'muralis --once' first",
       "none_downloaded": "No wallpaper downloaded yet",
       "tooltip": {
+        "name": "Name: {name}",
         "downloaded": "Downloaded: {time}",
         "size": "Size: {kb:.1f} KB",
         "provider": "Provider: {name}"
@@ -212,9 +213,9 @@
     },
     "history": {
       "refresh": "🔄 Refresh History",
+      "tip": "Double-click to set as your wallpaper",
       "empty": "No wallpapers found. Run 'muralis --once' first.",
-      "empty_short": "No wallpapers found yet",
-      "set_wallpaper": "Set as Wallpaper"
+      "empty_short": "No wallpapers found yet"
     },
     "settings": {
       "general": "General",
@@ -234,7 +235,6 @@
       "reset": "Reset to Defaults",
       "appearance": "Appearance",
       "theme": "Theme",
-      "quit": "Quit",
       "success_title": "Success",
       "saved": "Settings saved successfully!",
       "reset_title": "Reset Settings",
