@@ -1,6 +1,5 @@
 """Wallpaper preview widget for Muralis GUI."""
 
-import configparser
 from datetime import datetime
 from pathlib import Path
 from typing import Callable, Optional
@@ -14,7 +13,6 @@ from PySide6.QtWidgets import (
 from muralis.i18n import t
 
 MODIFIED_TIME_FORMAT = "%d %b %Y %H:%M:%S"
-CONFIG_PATH = Path.home() / ".config" / "muralis" / "config.ini"
 
 PREVIEW_SIZE = (800, 450)  # fallback for freshly-downloaded images without a saved size
 
@@ -30,11 +28,9 @@ def _provider_name() -> str:
     """Localized label for the configured provider."""
     provider = "bing"
     try:
-        if CONFIG_PATH.exists():
-            config = configparser.ConfigParser()
-            config.read(CONFIG_PATH)
-            provider = config.get("general", "provider", fallback="bing")
-    except (configparser.Error, OSError):
+        from .configview import config_view
+        provider = config_view().get("general", "provider", fallback="bing")
+    except Exception:
         pass
     localized = t(f"gui.provider.{provider}")
     return provider if localized.startswith("gui.provider") else localized

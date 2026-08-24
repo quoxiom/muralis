@@ -28,7 +28,6 @@ def run_gui():
         run_gui()
     """
     import sys
-    import configparser
     from pathlib import Path
     from PySide6.QtWidgets import QApplication
     from PySide6.QtCore import Qt
@@ -45,15 +44,14 @@ def run_gui():
 
     # Apply the stored theme (or the default) before showing the window
     theme_manager = ThemeManager(app)
-    config_path = Path.home() / ".config/muralis/config.ini"
+    config_path = Path.home() / ".config/muralis/config.json"
     stored = DEFAULT_THEME
-    if config_path.exists():
-        try:
-            config = configparser.ConfigParser()
-            config.read(config_path)
-            stored = config.get("gui", "theme", fallback=DEFAULT_THEME)
-        except Exception:
-            pass
+    try:
+        from .configview import config_view
+        stored = config_view(str(config_path)).get(
+            "gui", "theme", fallback=DEFAULT_THEME)
+    except Exception:
+        pass
     if not theme_manager.apply(stored):
         theme_manager.apply(DEFAULT_THEME)
 

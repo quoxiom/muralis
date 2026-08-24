@@ -1,13 +1,17 @@
-"""Extended configuration management for Muralis with per-path singleton."""
+"""Extended configuration management for Muralis with per-path singleton.
 
-import os
+Settings are stored as JSON. Existing ``config.ini`` files are migrated to
+``config.json`` on first load. The public get/set API is unchanged so callers
+(CLI, GUI, scheduler) don't need to care about the underlying format.
+"""
+
 import json
-import configparser
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import time
 
 from muralis.i18n import t
+
 
 class ConfigValidationError(Exception):
     """Raised when configuration validation fails."""
@@ -15,111 +19,151 @@ class ConfigValidationError(Exception):
 
 
 class ConfigManager:
-    """Configuration manager with per-file singleton pattern."""
-    
+    """Configuration manager with per-file singleton pattern (JSON-backed)."""
+
     # Class-level cache: path -> instance
     _instances: Dict[str, 'ConfigManager'] = {}
-    
+
     def __new__(cls, config_path: str):
         """Create or return cached instance for the given config path."""
-        # Normalize the path to absolute path
         normalized_path = str(Path(config_path).expanduser().absolute())
-        
-        # Return existing instance if it exists
         if normalized_path in cls._instances:
             return cls._instances[normalized_path]
-        
-        # Create new instance and cache it
         instance = super().__new__(cls)
         cls._instances[normalized_path] = instance
         return instance
-    
+
     def __init__(self, config_path: str):
         """Initialize configuration manager.
 
         The instance is cached per-path, but the config is re-read from disk
-        on every construction so changes made by other code (e.g. the GUI
-        Settings page) are picked up without restarting the application.
+        on every construction so external edits are picked up without restart.
         """
         if not hasattr(self, 'config_path'):
             self.config_path = Path(config_path).expanduser().absolute()
-            self.config = configparser.ConfigParser()
+            self.config: Dict[str, Dict[str, str]] = {}
             self.load()
             return
         # Cached instance: refresh from disk so external edits take effect.
         self.load()
-    
+
+    # ------------------------------------------------------------------
+    # Instance cache helpers
+    # ------------------------------------------------------------------
     @classmethod
     def clear_cache(cls):
-        """Clear all cached instances (useful for testing)."""
         cls._instances.clear()
-    
+
     @classmethod
     def get_instance_count(cls) -> int:
-        """Get number of cached instances (useful for debugging)."""
         return len(cls._instances)
-    
+
     @classmethod
     def get_instance_paths(cls) -> List[str]:
-        """Get all cached config paths (useful for debugging)."""
         return list(cls._instances.keys())
-    
-    def load(self):
-        """Load configuration from file or create default.
 
-        Reads into a fresh parser and replaces self.config so we reflect the
-        file exactly (configparser.read() would MERGE and resurrect keys that
-        were deleted on disk).
-        """
+    # ------------------------------------------------------------------
+    # Disk I/O
+    # ------------------------------------------------------------------
+    def load(self):
+        """Load configuration from disk (migrating INI to JSON if needed)."""
         if self.config_path.exists():
-            fresh = configparser.ConfigParser()
-            fresh.read(self.config_path)
-            self.config = fresh
+            data = self._read_json(self.config_path)
+            if data is not None:
+                self.config = data
+            else:
+                self._migrate_from_ini(self.config_path)
             self._migrate_config()
             self.validate()
-        else:
-            self.create_default()
-    
+            return
+        # Try a legacy INI at a sibling path (old default config.ini).
+        legacy = self.config_path
+        if self.config_path.suffix.lower() == '.json':
+            legacy = self.config_path.with_suffix('.ini')
+        if legacy.exists() and legacy != self.config_path:
+            self._migrate_from_ini(legacy)
+            self._migrate_config()
+            self.validate()
+            return
+        self.create_default()
+
+    def _read_json(self, path: Path) -> Optional[Dict[str, Dict[str, str]]]:
+        """Read a JSON config dict, or None if the file isn't JSON."""
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return {str(s): {str(k): str(v) for k, v in opts.items()}
+                        if isinstance(opts, dict) else {}
+                        for s, opts in data.items()}
+        except (OSError, json.JSONDecodeError, ValueError):
+            return None
+        return None
+
+    def _write_json(self):
+        self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.config_path, 'w', encoding='utf-8') as f:
+            json.dump(self.config, f, indent=2, ensure_ascii=False)
+
+    def _migrate_from_ini(self, ini_path: Path):
+        """Migrate a legacy INI file into the JSON config dict."""
+        import configparser
+        parser = configparser.ConfigParser()
+        parser.read(ini_path)
+        self.config = {}
+        for section in parser.sections():
+            self.config[section] = dict(parser.items(section))
+        # Only migrate config used by Muralis (skip foreign sections).
+        allowed = set(self.DEFAULT_CONFIG.keys())
+        self.config = {s: o for s, o in self.config.items()
+                       if s in allowed or s == 'api_keys' or s == 'general'}
+        # Keep api_keys from legacy even though it's not a DEFAULT section key.
+        for section, opts in self.DEFAULT_CONFIG.items():
+            self.config.setdefault(section, {})
+            for key, value in opts.items():
+                self.config[section].setdefault(key, value)
+        self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        self._write_json()
+        # Remove the legacy INI now that it's migrated.
+        try:
+            ini_path.unlink()
+        except OSError:
+            pass
+
     def _migrate_config(self):
-        """Migrate old config to new format."""
+        """Add any missing default sections/keys to the current config."""
         modified = False
-        
-        # Add missing sections
         for section, options in self.DEFAULT_CONFIG.items():
             if section not in self.config:
-                self.config[section] = options
+                self.config[section] = dict(options)
                 modified = True
             else:
-                # Add missing keys in existing sections
                 for key, value in options.items():
                     if key not in self.config[section]:
                         self.config[section][key] = value
                         modified = True
-        
         if modified:
-            self.save()
-    
+            self._write_json()
+
     def create_default(self):
-        """Create default configuration file."""
         for section, options in self.DEFAULT_CONFIG.items():
-            self.config[section] = options
-        self.save()
+            self.config[section] = dict(options)
+        self._write_json()
         print(t("cli.config.created", path=self.config_path))
-    
+
     def save(self):
-        """Save configuration to file."""
+        """Persist the current config to disk."""
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.config_path, 'w') as f:
-            self.config.write(f)
-    
+        self._write_json()
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
     def validate(self):
-        """Validate current configuration."""
         errors = []
-        
         for key, rules in self.VALIDATION_RULES.items():
             section, option = key.split('.')
             value = self.get_str(section, option, "")
-            
             if rules["type"] == "int":
                 try:
                     int_val = int(value)
@@ -129,72 +173,62 @@ class ConfigManager:
                         errors.append(f"{key}: {value} exceeds maximum {rules['max']}")
                 except ValueError:
                     errors.append(f"{key}: '{value}' is not a valid integer")
-            
             elif rules["type"] == "choice":
                 if value not in rules["choices"]:
-                    errors.append(f"{key}: '{value}' is not valid. Choose from: {', '.join(rules['choices'])}")
-            
+                    choices = ", ".join(rules["choices"])
+                    errors.append(f"{key}: '{value}' is not valid. Choose from: {choices}")
             elif rules["type"] == "resolution":
                 if not self._validate_resolution(value):
-                    errors.append(f"{key}: '{value}' is not a valid resolution (format: WxH, e.g., 1920x1080)")
-            
+                    errors.append(f"{key}: '{value}' is not a valid resolution (format: WxH)")
             elif rules["type"] == "time":
                 if not self._validate_time(value):
-                    errors.append(f"{key}: '{value}' is not a valid time (format: HH:MM, 24-hour)")
-        
+                    errors.append(f"{key}: '{value}' is not a valid time (format: HH:MM)")
         if errors:
             print(t("cli.warn.validation"))
             for error in errors:
                 print(f"  • {error}")
             print(t("cli.warn.validation_continue"))
-    
+
+    # ------------------------------------------------------------------
+    # Getters
+    # ------------------------------------------------------------------
     def get_str(self, section: str, key: str, fallback: str = "") -> str:
-        """Get string configuration value."""
         try:
-            value = self.config.get(section, key, fallback=fallback)
-            return value if value is not None else fallback
+            value = self.config.get(section, {}).get(key)
+            return str(value) if value is not None else fallback
         except Exception:
             return fallback
-    
+
     def get_bool(self, section: str, key: str, fallback: bool = False) -> bool:
-        """Get boolean configuration value."""
         val = self.get_str(section, key, str(fallback).lower())
         return val.lower() in ['true', 'yes', '1', 'on']
-    
+
     def get_int(self, section: str, key: str, fallback: int = 0) -> int:
-        """Get integer configuration value."""
         val = self.get_str(section, key, str(fallback))
         try:
             return int(val)
         except (ValueError, TypeError):
             return fallback
-    
+
     def get_float(self, section: str, key: str, fallback: float = 0.0) -> float:
-        """Get float configuration value."""
         val = self.get_str(section, key, str(fallback))
         try:
             return float(val)
         except (ValueError, TypeError):
             return fallback
-    
+
     def get_optional(self, section: str, key: str) -> Optional[str]:
-        """Get optional string value (may return None)."""
-        try:
-            value = self.config.get(section, key, fallback=None)
-            return value if value else None
-        except Exception:
-            return None
-    
+        value = self.get_str(section, key)
+        return value if value else None
+
     def get_time(self, section: str, key: str) -> Optional[time]:
-        """Get time configuration value."""
         time_str = self.get_optional(section, key)
         if time_str and self._validate_time(time_str):
             hours, minutes = map(int, time_str.split(':'))
             return time(hour=hours, minute=minutes)
         return None
-    
-    def get_resolution(self, section: str, key: str) -> tuple:
-        """Get resolution as (width, height) tuple."""
+
+    def get_resolution(self, section: str, key: str):
         res_str = self.get_str(section, key, "1920x1080")
         if 'x' in res_str:
             parts = res_str.split('x')
@@ -204,130 +238,103 @@ class ConfigManager:
                 except ValueError:
                     pass
         return (1920, 1080)
-    
+
+    # ------------------------------------------------------------------
+    # Setters
+    # ------------------------------------------------------------------
     def set(self, section: str, key: str, value: str):
-        """Set configuration value and save immediately."""
-        if section not in self.config:
-            self.config[section] = {}
-        self.config[section][key] = str(value)
+        self.config.setdefault(section, {})[key] = str(value)
         self.save()
-    
+
     def get_all(self) -> Dict[str, Any]:
-        """Get all configuration as dictionary."""
-        result = {}
-        for section in self.config.sections():
-            result[section] = dict(self.config.items(section))
-        return result
-    
+        return {section: dict(options) for section, options in self.config.items()}
+
     def get_download_dir(self) -> Path:
-        """Get download directory path."""
-        dir_path = self.get_str('storage', 'download_dir', '~/Pictures/Muralis')
-        return Path(dir_path).expanduser()
-    
+        return Path(self.get_str('storage', 'download_dir', '~/Pictures/Muralis')).expanduser()
+
     def get_log_file(self) -> Path:
-        """Get log file path."""
-        log_path = self.get_str('logging', 'log_file', '~/.local/share/muralis/muralis.log')
-        return Path(log_path).expanduser()
-    
+        return Path(self.get_str('logging', 'log_file', '~/.local/share/muralis/muralis.log')).expanduser()
+
     def get_proxy_settings(self) -> Optional[Dict]:
-        """Get proxy settings for requests."""
         if not self.get_bool('networking', 'proxy_enabled', False):
             return None
-        
         proxy_url = self.get_str('networking', 'proxy_url', '')
         if not proxy_url:
             return None
-        
         username = self.get_str('networking', 'proxy_username', '')
         password = self.get_str('networking', 'proxy_password', '')
-        
         if username and password:
-            # Add authentication to proxy URL
             from urllib.parse import urlparse
             parsed = urlparse(proxy_url)
             proxy_url = f"{parsed.scheme}://{username}:{password}@{parsed.netloc}{parsed.path}"
-        
-        return {
-            'http': proxy_url,
-            'https': proxy_url
-        }
-    
+        return {'http': proxy_url, 'https': proxy_url}
+
     def get_update_time(self) -> str:
-        """Get update time as string for scheduler."""
         return self.get_str('scheduling', 'update_time', '09:00')
-    
+
     def get_api_key(self, provider: str) -> Optional[str]:
-        """Get API key for a provider."""
         key = self.get_optional('api_keys', f"{provider}_key")
         return key if key else None
-    
+
     def set_api_key(self, provider: str, key: str):
-        """Set API key for a provider."""
         self.set('api_keys', f"{provider}_key", key)
-    
+
+    # ------------------------------------------------------------------
+    # Display / import / export
+    # ------------------------------------------------------------------
     def display(self):
-        """Display current configuration in a readable format."""
         print("\n" + "=" * 60)
         print(t("cli.config.title"))
         print("=" * 60)
         print(t("cli.config.file", path=self.config_path))
         print("=" * 60)
-        
-        for section in self.config.sections():
+        for section, options in self.config.items():
             print(f"\n[{section}]")
-            for key, value in self.config.items(section):
-                # Mask sensitive values
+            for key, value in options.items():
+                value = str(value)
                 if 'key' in key or 'password' in key or 'secret' in key:
-                    if value and len(value) > 8:
+                    if len(value) > 8:
                         value = value[:4] + "..." + value[-4:]
                     elif value:
                         value = "***"
-                
-                # Format boolean values nicely
                 if value.lower() in ['true', 'false']:
                     value = "✓" if value.lower() == 'true' else "✗"
-                
                 print(f"  {key:25} = {value}")
-        
         print("\n" + "=" * 60)
-    
+
     def export_json(self, filepath: str):
-        """Export configuration to JSON file."""
         data = self.get_all()
         export_path = Path(filepath).expanduser()
         export_path.parent.mkdir(parents=True, exist_ok=True)
         with open(export_path, 'w') as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=2, ensure_ascii=False)
         print(t("cli.ok.exported", path=export_path))
-    
+
     def import_json(self, filepath: str):
-        """Import configuration from JSON file."""
         import_path = Path(filepath).expanduser()
         with open(import_path, 'r') as f:
             data = json.load(f)
-        
         for section, options in data.items():
-            if section not in self.config:
-                self.config[section] = {}
+            opts = self.config.setdefault(str(section), {})
             for key, value in options.items():
-                self.config[section][key] = str(value)
-        
+                opts[str(key)] = str(value)
         self.save()
         print(t("cli.ok.imported", path=import_path))
-    
+
+    # ------------------------------------------------------------------
+    # Validators
+    # ------------------------------------------------------------------
     def _validate_resolution(self, resolution: str) -> bool:
-        """Validate resolution format (e.g., 1920x1080)."""
         import re
-        pattern = r'^\d{3,4}x\d{3,4}$'
-        return bool(re.match(pattern, resolution))
-    
+        return bool(re.match(r'^\d{3,4}x\d{3,4}$', resolution))
+
     def _validate_time(self, time_str: str) -> bool:
-        """Validate time format (HH:MM)."""
         import re
-        pattern = r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$'
-        return bool(re.match(pattern, time_str))
-    
-    # Default configuration values
+        return bool(re.match(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', time_str))
+
+    # ------------------------------------------------------------------
+    # Defaults & validation rules
+    # ------------------------------------------------------------------
     DEFAULT_CONFIG = {
         "general": {
             "provider": "bing",
@@ -414,44 +421,27 @@ class ConfigManager:
         },
         "api_keys": {
             "unsplash_key": "",
-            "pexels_key": "563492ad6f91700001000001d6d5e3b5e5a14e8b8b9b9b9b9b9b9b",
+            "pexels_key": "563492ad6f91700001000001d6d5e3b5e5a14e8b8b9b9b9b9b9b9",
             "flickr_key": "",
             "flickr_secret": ""
         }
     }
-    
-    # Validation rules
+
     VALIDATION_RULES = {
-        "general.provider": {
-            "type": "choice",
-            "choices": ["bing", "nasa", "unsplash", "pexels", "wikimedia", "artinstitute", "wallhaven"],
-            "message": "Provider must be one of: bing, nasa, unsplash, pexels, wikimedia, artinstitute, wallhaven"
-        },
+        "general.provider": {"type": "choice", "choices": ["bing", "nasa", "unsplash", "pexels", "wikimedia", "artinstitute", "wallhaven"]},
         "general.update_interval": {"type": "int", "min": 300, "max": 604800},
         "image.resolution": {"type": "resolution"},
         "image.jpeg_quality": {"type": "int", "min": 1, "max": 100},
-        "image.effect_type": {
-            "type": "choice",
-            "choices": ["none", "blur", "darken", "grayscale", "vibrant", "vignette"]
-        },
-        "image.fit_mode": {
-            "type": "choice",
-            "choices": ["zoom", "fill", "fit", "stretch", "center"]
-        },
-        "image.image_format": {
-            "type": "choice",
-            "choices": ["jpg", "png", "webp"]
-        },
+        "image.effect_type": {"type": "choice", "choices": ["none", "blur", "darken", "grayscale", "vibrant", "vignette"]},
+        "image.fit_mode": {"type": "choice", "choices": ["zoom", "fill", "fit", "stretch", "center"]},
+        "image.image_format": {"type": "choice", "choices": ["jpg", "png", "webp"]},
         "storage.max_files": {"type": "int", "min": 0, "max": 10000},
         "storage.max_days": {"type": "int", "min": 0, "max": 365},
         "storage.compression_level": {"type": "int", "min": 0, "max": 9},
         "scheduling.update_time": {"type": "time"},
         "scheduling.random_delay_minutes": {"type": "int", "min": 0, "max": 120},
         "scheduling.minimum_interval_hours": {"type": "int", "min": 1, "max": 24},
-        "logging.log_level": {
-            "type": "choice",
-            "choices": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        },
+        "logging.log_level": {"type": "choice", "choices": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]},
         "advanced.cache_size_mb": {"type": "int", "min": 100, "max": 5000},
         "advanced.parallel_downloads": {"type": "int", "min": 1, "max": 5}
     }

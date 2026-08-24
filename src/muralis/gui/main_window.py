@@ -5,7 +5,6 @@ icons, a themed status bar with live info, and no menu bar — all settings live
 in the Settings page.
 """
 
-import configparser
 from typing import Optional
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -25,8 +24,13 @@ from .history_tab import HistoryTab
 from .preview_widget import PreviewWidget
 from .theme import ThemeManager, DEFAULT_THEME
 from .icons import app_icon, make_icon, render_pixmap, ICON_IDLE, icon_tint_for_theme
+from .configview import config_view
 
-CONFIG_PATH = Path.home() / ".config" / "muralis" / "config.ini"
+CONFIG_PATH = Path.home() / ".config" / "muralis" / "config.json"
+
+# ConfigParser-compatible read/write facade over the JSON config.
+_CONFIG = config_view
+
 WALLPAPER_DIR = Path.home() / "Pictures" / "Muralis"
 
 
@@ -334,12 +338,9 @@ class MainWindow(QMainWindow):
 
         self.status_bar.showMessage(t("gui.status.ready"))
 
-    def _read_config(self) -> configparser.ConfigParser:
-        """Read the config file (empty parser if missing)."""
-        config = configparser.ConfigParser()
-        if CONFIG_PATH.exists():
-            config.read(CONFIG_PATH)
-        return config
+    def _read_config(self):
+        """Read the config (JSON via ConfigManager facade)."""
+        return _CONFIG()
 
     def _provider_name(self, key: str) -> str:
         """Localized display name for a provider key."""
@@ -461,12 +462,8 @@ class MainWindow(QMainWindow):
             self._refresh_app_icon()
             try:
                 config = self._read_config()
-                if "gui" not in config:
-                    config["gui"] = {}
-                config["gui"]["theme"] = theme_id
-                CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-                with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-                    config.write(f)
+                config.set("gui", "theme", theme_id)
+                config.save()
             except OSError:
                 # Read-only config dir: theme applies for this session only
                 pass

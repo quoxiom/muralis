@@ -6,7 +6,6 @@ every row has its label on the left and the control on the right. Finite
 options use segmented selection buttons, on/off options use toggle buttons.
 """
 
-import configparser
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
@@ -107,7 +106,7 @@ class SettingsTab(QWidget):
         """
         super().__init__(parent)
 
-        self.config_path = Path.home() / ".config/muralis/config.ini"
+        self.config_path = Path.home() / ".config/muralis/config.json"
         self.theme_manager = theme_manager
         self.on_theme_change = on_theme_change
         self.on_settings_changed = on_settings_changed
@@ -502,11 +501,10 @@ class SettingsTab(QWidget):
 
     # ------------------------------------------------------------------
     # Persistence    # ------------------------------------------------------------------
-    def _load_raw(self) -> configparser.ConfigParser:
-        config = configparser.ConfigParser()
-        if self.config_path.exists():
-            config.read(self.config_path)
-        return config
+    def _load_raw(self):
+        """ConfigParser-compatible view over the JSON config."""
+        from .configview import config_view
+        return config_view(str(self.config_path))
 
     def load_settings(self):
         """Load settings from config file (defaults used when absent)."""
@@ -604,10 +602,8 @@ class SettingsTab(QWidget):
         config['gui']['theme'] = self._checked_value(
             self.theme_buttons, DEFAULT_THEME)
 
-        # Save config
-        self.config_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.config_path, 'w', encoding='utf-8') as f:
-            config.write(f)
+        # Save config (JSON via the ConfigView facade)
+        config.save()
 
         if self.on_settings_changed:
             self.on_settings_changed()

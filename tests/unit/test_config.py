@@ -92,15 +92,18 @@ class TestConfigManager:
         assert 'http' in proxy
 
     def test_migration(self):
-        """Test config migration from old version."""
-        # Create old style config
-        old_config = ConfigManager(str(Path(self.temp_dir.name) / 'old.ini'))
-        old_config.config['general'] = {'provider': 'bing'}
-        old_config.save()
-        
-        # Load with migration
-        new_config = ConfigManager(str(old_config.config_path))
-        assert new_config.config.has_section('image')
+        """Test config migration from old version (INI -> JSON)."""
+        # Create an old-style INI config file.
+        old_ini = Path(self.temp_dir.name) / 'legacy.ini'
+        old_ini.write_text(
+            "[general]\nprovider = nasa\n[image]\nresolution = 1920x1080\n",
+            encoding='utf-8')
+        # Load it through ConfigManager: it migrates to JSON and keeps values.
+        migrated = ConfigManager(str(old_ini))
+        assert migrated.get_str('general', 'provider') == 'nasa'
+        assert migrated.get_str('image', 'resolution') == '1920x1080'
+        # Defaults are filled in for the migrated config.
+        assert migrated.get_str('image', 'effect_type') == 'none'
 
     def teardown_method(self):
         """Clean test fixtures."""
