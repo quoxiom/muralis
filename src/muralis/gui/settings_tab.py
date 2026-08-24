@@ -13,9 +13,10 @@ from PySide6.QtCore import Qt, QSignalBlocker, Signal
 from PySide6.QtGui import QFont, QFontMetrics
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QPushButton, QButtonGroup, QSpinBox,
+    QPushButton, QButtonGroup, QSpinBox, QTimeEdit,
     QScrollArea, QFrame, QLabel, QStackedWidget, QSizePolicy, QApplication
 )
+from PySide6.QtCore import QTime
 
 from muralis.i18n import t
 from .theme import DEFAULT_THEME
@@ -95,6 +96,7 @@ class SettingsTab(QWidget):
     def __init__(self, theme_manager=None,
                  on_theme_change: Optional[Callable[[str], None]] = None,
                  on_settings_changed: Optional[Callable[[], None]] = None,
+                 on_auto_update_changed: Optional[Callable[[bool], None]] = None,
                  parent=None):
         """Initialize the settings tab.
 
@@ -102,6 +104,8 @@ class SettingsTab(QWidget):
             theme_manager: ThemeManager used to list available themes
             on_theme_change: Called with the new theme id when changed
             on_settings_changed: Called after settings are saved or reset
+            on_auto_update_changed: Called with the new auto-update enabled state
+                so the caller can install/remove the background timer
             parent: Parent widget
         """
         super().__init__(parent)
@@ -110,6 +114,7 @@ class SettingsTab(QWidget):
         self.theme_manager = theme_manager
         self.on_theme_change = on_theme_change
         self.on_settings_changed = on_settings_changed
+        self.on_auto_update_changed = on_auto_update_changed
 
         self.nav_items: Dict[str, _NavItem] = {}
 
@@ -362,6 +367,19 @@ class SettingsTab(QWidget):
                   self.auto_update_toggle,
                   description=t("gui.settings.desc.auto_update"))
 
+        # Automatic Update Time (only enabled when auto-update is active).
+        self.update_time_edit = QTimeEdit()
+        self.update_time_edit.setDisplayFormat("HH:mm")
+        self.update_time_edit.setTime(QTime(9, 0))
+        self.update_time_edit.setSizePolicy(
+            QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        self._row(layout, t("gui.settings.update_time"), self.update_time_edit,
+                  description=t("gui.settings.desc.update_time"))
+        self.auto_update_toggle.toggled.connect(
+            self.update_time_edit.setEnabled)
+        self.update_time_edit.setEnabled(
+            self.auto_update_toggle.isChecked())
+
         self.randomize_toggle = self._toggle_button(t("gui.settings.randomize"))
         self._row(layout, t("gui.settings.randomize"), self.randomize_toggle,
                   description=t("gui.settings.desc.randomize"))
@@ -516,6 +534,7 @@ class SettingsTab(QWidget):
         self._check_value(self.effect_buttons, 'none')
         self._check_value(self.theme_buttons, DEFAULT_THEME)
         self._set_toggle(self.auto_update_toggle, True)
+        self.update_time_edit.setTime(QTime(9, 0))
         self._set_toggle(self.randomize_toggle, False)
         self._set_toggle(self.effects_toggle, False)
         self._set_toggle(self.save_downloads_toggle, True)
@@ -530,6 +549,13 @@ class SettingsTab(QWidget):
                 fallback='bing')
             self._set_toggle(self.auto_update_toggle,
                              config.getboolean('general', 'auto_update', fallback=True))
+            time_str = config.get(
+                'scheduling', 'update_time', fallback='09:00')
+            try:
+                h, m = map(int, time_str.split(':'))
+                self.update_time_edit.setTime(QTime(h, m))
+            except (ValueError, AttributeError):
+                self.update_time_edit.setTime(QTime(9, 0))
             self._set_toggle(self.randomize_toggle,
                              config.getboolean('general', 'randomize_provider', fallback=False))
 
@@ -578,6 +604,12 @@ class SettingsTab(QWidget):
         config['general']['randomize_provider'] = str(
             self.randomize_toggle.isChecked()).lower()
 
+        # Scheduling (automatic update time)
+        if 'scheduling' not in config:
+            config['scheduling'] = {}
+        config['scheduling']['update_time'] = self.update_time_edit.time().toString(
+            "HH:mm")
+
         # Image section
         if 'image' not in config:
             config['image'] = {}
@@ -607,6 +639,9 @@ class SettingsTab(QWidget):
 
         if self.on_settings_changed:
             self.on_settings_changed()
+
+        if self.on_auto_update_changed:
+            self.on_auto_update_changed(self.auto_update_toggle.isChecked())
 
         from .dialogs import info, confirm
         info(self, t("gui.settings.success_title"), t("gui.settings.saved"))

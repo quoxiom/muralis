@@ -31,7 +31,7 @@ Documentation=https://github.com/quoxiom/qutility-muralis
 Requires=muralis.service
 
 [Timer]
-OnCalendar=*-*-* 09:00:00
+OnCalendar=*-*-* {time}:00
 Persistent=true
 RandomizedDelaySec=1800
 
@@ -39,14 +39,15 @@ RandomizedDelaySec=1800
 WantedBy=timers.target
 '''
 
-CRON_TEMPLATE = "# Muralis daily wallpaper update\n0 9 * * * {script_path} --once\n"
+CRON_TEMPLATE = "# Muralis daily wallpaper update\n{minute} {hour} * * * {script_path} --once\n"
 
 class SchedulerManager:
     """Manages automatic wallpaper updates."""
     
     def __init__(self, config):
         self.config = config
-        self.auto_update = config.get_bool('general', 'auto_update', True)
+        self.auto_update = self.config.get_bool('general', 'auto_update', True)
+        self.update_time = self.config.get_update_time() or "09:00"
     
     def setup(self) -> bool:
         """Setup automatic updates using systemd or cron."""
@@ -57,9 +58,51 @@ class SchedulerManager:
         # Fallback to cron
         if self._setup_cron():
             return True
-        
         return False
-    
+
+    def disable(self) -> bool:
+        """Remove the background daily timer/job (systemd first, then cron)."""
+        removed = False
+        # systemd user timer
+        timer_path = Path.home() / '.config/systemd/user/muralis.timer'
+        service_path = Path.home() / '.config/systemd/user/muralis.service'
+        if timer_path.exists() or service_path.exists():
+            try:
+                subprocess.run(['systemctl', '--user', 'disable', '--now',
+                                'muralis.timer'], check=False, capture_output=True)
+                if timer_path.exists():
+                    timer_path.unlink()
+                if service_path.exists():
+                    service_path.unlink()
+                subprocess.run(['systemctl', '--user', 'daemon-reload'],
+                               check=False, capture_output=True)
+                removed = True
+            except Exception:
+                pass
+        # cron fallback
+        try:
+            result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
+            lines = result.stdout.splitlines() if result.returncode == 0 else []
+            filtered = [ln for ln in lines if 'muralis' not in ln]
+            if len(filtered) != len(lines):
+                subprocess.run(['crontab', '-'], input="\n".join(filtered) + "\n",
+                               text=True, check=False)
+                removed = True
+        except Exception:
+            pass
+        return removed
+
+    def _hour_minute(self) -> tuple:
+        """Parse the configured update time (HH:MM) into (hour, minute)."""
+        hour, minute = 9, 0
+        try:
+            parts = self.update_time.split(':')
+            hour = int(parts[0])
+            minute = int(parts[1]) if len(parts) > 1 else 0
+        except (ValueError, AttributeError):
+            pass
+        return max(0, min(23, hour)), max(0, min(59, minute))
+
     def _setup_systemd(self) -> bool:
         """Setup systemd user timer."""
         try:
@@ -80,8 +123,10 @@ class SchedulerManager:
             service_path.parent.mkdir(parents=True, exist_ok=True)
             service_path.write_text(service_content)
             
-            # Create timer file
-            timer_content = SYSTEMD_TIMER_TEMPLATE
+            # Create timer file (uses the configured update time)
+            hour, minute = self._hour_minute()
+            timer_content = SYSTEMD_TIMER_TEMPLATE.format(
+                time=f"{hour:02d}:{minute:02d}")
             timer_path = Path.home() / '.config/systemd/user/muralis.timer'
             timer_path.write_text(timer_content)
             
@@ -104,7 +149,9 @@ class SchedulerManager:
         """Setup cron job as fallback."""
         try:
             script_path = self._get_script_path()
-            cron_line = CRON_TEMPLATE.format(script_path=script_path)
+            hour, minute = self._hour_minute()
+            cron_line = CRON_TEMPLATE.format(
+                script_path=script_path, hour=hour, minute=minute)
             
             # Check if crontab exists
             result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)

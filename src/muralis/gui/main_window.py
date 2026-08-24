@@ -99,6 +99,7 @@ class MainWindow(QMainWindow):
             theme_manager=self.theme_manager,
             on_theme_change=self._set_theme,
             on_settings_changed=self._update_status_bar,
+            on_auto_update_changed=self._setup_auto_update_scheduler,
             parent=self
         )
         self.about_page = self._build_about_page()
@@ -128,10 +129,11 @@ class MainWindow(QMainWindow):
         # Apply the stored theme (after widgets exist)
         self._apply_stored_theme()
 
-        # Setup auto-refresh timer
+        # Setup auto-refresh timer (refreshes preview + checks daily update time)
         self.refresh_timer = QTimer()
         self.refresh_timer.timeout.connect(self._auto_refresh_preview)
-        self.refresh_timer.start(60000)  # Refresh every minute
+        self.refresh_timer.start(60000)  # every minute
+        self._last_daily_run = None
 
         # Start on the preview page
         self._show_page("preview")
@@ -500,8 +502,38 @@ class MainWindow(QMainWindow):
                      t("gui.dialog.failed_update_detail", error=str(e)))
 
     def _auto_refresh_preview(self):
-        """Auto-refresh the preview (not the wallpaper itself)."""
+        """Auto-refresh the preview; also trigger the daily scheduled update."""
         self.preview_widget.refresh_preview()
+        self._check_scheduled_update()
+
+    def _check_scheduled_update(self):
+        """Run the wallpaper update if auto-update is on and the time matches."""
+        from datetime import date
+        try:
+            if not self._read_config().getboolean(
+                    "general", "auto_update", fallback=True):
+                return
+            time_str = self._read_config().get(
+                "scheduling", "update_time", fallback="09:00")
+            hour, minute = map(int, time_str.split(":"))
+            now = datetime.now()
+            if now.hour == hour and now.minute == minute and \
+                    self._last_daily_run != date.today().isoformat():
+                self._last_daily_run = date.today().isoformat()
+                self._refresh_wallpaper()
+        except (ValueError, AttributeError):
+            pass
+
+    def _setup_auto_update_scheduler(self, enable: bool):
+        """Install or remove the background (systemd) daily timer."""
+        from muralis.app import MuralisApp
+        from muralis.scheduler import SchedulerManager
+        app = MuralisApp(str(CONFIG_PATH))
+        sched = SchedulerManager(app.config)
+        if enable:
+            sched.setup()
+        else:
+            sched.disable()
 
     def closeEvent(self, event):
         """Close the window and quit the application."""
