@@ -122,6 +122,8 @@ class HistoryTab(QWidget):
         self.refresh_btn.clicked.connect(self._on_refresh_clicked)
 
         layout = QVBoxLayout(self)
+        # Match the Settings content pane's left indentation so all pages align.
+        layout.setContentsMargins(20, 0, 20, 0)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)

@@ -238,7 +238,8 @@ class MainWindow(QMainWindow):
         """Build the About page."""
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(0, 0, 0, 0)
+        # Match the Settings content pane's indentation so all pages align.
+        layout.setContentsMargins(20, 20, 20, 20)
 
         card = QFrame()
         card.setObjectName("aboutCard")

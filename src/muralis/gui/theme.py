@@ -12,6 +12,8 @@ import string
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
+from .icons import ICONS_DIR
+
 DEFAULT_THEME = "reasonix"
 
 # User-editable themes directory
@@ -92,6 +94,10 @@ class ThemeManager:
         if not colors:
             return False
         try:
+            # Absolute path to the icons dir so QSS url() resolves the spin
+            # chevron images regardless of the working directory.
+            colors = dict(colors)
+            colors["icon_dir"] = str(ICONS_DIR.absolute())
             qss = QSS_TEMPLATE.substitute(colors)
             self.app.setStyleSheet(qss)
             return True
@@ -156,7 +162,7 @@ QLabel { background: transparent; }
 
 /* panels that sit inside the app background */
 #sidebar { background-color: ${panel}; border-right: 1px solid ${border}; }
-#settingsNav { background-color: ${panel}; border-right: 1px solid ${border}; }
+#settingsNav { background-color: ${panel}; border: 1px solid ${border}; border-radius: 10px; }
 
 /* raised cards / preview / info */
 #thumbFrame, #infoFrame, #aboutCard, #previewImage {
@@ -165,7 +171,6 @@ QLabel { background: transparent; }
     border-radius: 10px;
 }
 #thumbFrame:hover { background-color: ${card_hover}; border-color: ${accent}; }
-#previewImage { background-color: ${preview_bg}; }
 #thumbInfo { color: ${text_muted}; font-size: 11px; padding: 2px; }
 
 /* ================= Buttons ================= */
@@ -215,8 +220,8 @@ QSpinBox, QDoubleSpinBox {
 }
 QSpinBox:focus, QDoubleSpinBox:focus { border: 1px solid ${focus_border}; }
 QSpinBox::up-button, QSpinBox::down-button, QDoubleSpinBox::up-button, QDoubleSpinBox::down-button { background-color: transparent; border: none; width: 18px; }
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow { image: none; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 5px solid ${text_muted}; }
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow { image: none; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid ${text_muted}; }
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow { image: url(${icon_dir}/chevron-up.svg); width: 14px; height: 14px; }
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow { image: url(${icon_dir}/chevron-down.svg); width: 14px; height: 14px; }
 
 /* ================= Scroll areas ================= */
 QScrollArea { border: none; background: transparent; }
