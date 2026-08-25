@@ -48,7 +48,8 @@ class PreviewWidget(QWidget):
 
         layout = QVBoxLayout(self)
         # Match the Settings content pane's left indentation so all pages align.
-        layout.setContentsMargins(20, 0, 20, 0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
         # Expands in both directions — the sole body of the preview.
         self.preview_label = QLabel()

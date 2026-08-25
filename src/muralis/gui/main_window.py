@@ -245,7 +245,7 @@ class MainWindow(QMainWindow):
         page = QWidget()
         layout = QVBoxLayout(page)
         # Match the Settings content pane's indentation so all pages align.
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         card = QFrame()
         card.setObjectName("aboutCard")
