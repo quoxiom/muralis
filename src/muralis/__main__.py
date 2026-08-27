@@ -217,7 +217,8 @@ def list_providers():
 
 def show_help():
     """Display help information when no arguments provided."""
-    print(f"""
+    print(
+        f"""
 {t('cli.banner.title', version=__version__)}
 {t('cli.banner.part_of')}
 {'=' * 50}
@@ -255,7 +256,8 @@ def show_help():
 {t('cli.banner.docs_help_line')}
 {t('cli.banner.docs_url')}
 
-""")
+"""
+    )
 
 
 def main():

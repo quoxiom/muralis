@@ -111,7 +111,8 @@ class ThemeManager:
 #   Surfaces (dark→light): window < panel < raised < menu < tooltip
 #   Text (strong→muted):   text_strong, text, text_muted, text_disabled
 #   Buttons:               btn_bg / btn_hover / btn_active / border_strong
-QSS_TEMPLATE = string.Template("""
+QSS_TEMPLATE = string.Template(
+    """
 /* ================= Base ================= */
 QMainWindow, QDialog, #centralWidget {
     background-color: ${window};
@@ -259,4 +260,5 @@ QToolTip {
 /* ================= Message boxes ================= */
 QMessageBox { background-color: ${menu_bg}; }
 QMessageBox QLabel { color: ${text}; }
-""")
+"""
+)
