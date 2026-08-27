@@ -54,4 +54,4 @@ def confirm(parent, title: str, text: str) -> bool:
         text,
         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
     )
-    return box.exec() == QMessageBox.StandardButton.Yes
+    return bool(box.exec() == QMessageBox.StandardButton.Yes)

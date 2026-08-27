@@ -33,8 +33,8 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
     "black==24.10.0",
-    "flake8>=6.0.0",
-    "mypy>=1.0.0",
+    "flake8==7.3.0",
+    "mypy==1.10.1",
 ]
 test = ["pytest>=7.0.0", "pytest-cov>=4.0.0", "pytest-mock>=3.10.0"]
 docs = ["mkdocs>=1.5.0", "mkdocs-material>=9.0.0"]
@@ -44,8 +44,8 @@ full = [
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
     "black==24.10.0",
-    "flake8>=6.0.0",
-    "mypy>=1.0.0",
+    "flake8==7.3.0",
+    "mypy==1.10.1",
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.0.0",
 ]
