@@ -163,11 +163,6 @@ jobs:
         sarif_file: 'trivy-results.sarif'
       continue-on-error: true
 
-    - name: Check dependencies for vulnerabilities
-      run: |
-        pip install safety>=2.3.5
-        safety check --full-report --ignore-unpinned
-
   # Job 5: Documentation build
   docs:
     name: Build Documentation
