@@ -35,7 +35,7 @@ class GnomeSetter(WallpaperSetter):
     PICTURE_URI_DARK_KEY = "picture-uri-dark"
     PICTURE_OPTIONS_KEY = "picture-options"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize GNOME setter."""
         self._has_dark_mode: Optional[bool] = None
 

@@ -58,7 +58,7 @@ jobs:
 
     - name: Type check with mypy (advisory, non-gating)
       run: |
-        mypy src/ --ignore-missing-imports
+        mypy
       continue-on-error: true
 
     - name: Run tests with pytest (the release gate)
