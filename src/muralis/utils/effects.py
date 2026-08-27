@@ -2,7 +2,6 @@
 
 from PIL import Image, ImageFilter, ImageEnhance
 from pathlib import Path
-from typing import Optional
 
 def apply_effect(image_path: str, effect: str) -> Path:
     """Apply visual effects to wallpaper.

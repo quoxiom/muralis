@@ -19,16 +19,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QTime
 
 from muralis.i18n import t
+from muralis.providers import ALL_PROVIDERS
 from .theme import DEFAULT_THEME
 
 PROVIDERS: List[Tuple[str, str]] = [
-    ("bing", "gui.provider.bing"),
-    ("nasa", "gui.provider.nasa"),
-    ("pexels", "gui.provider.pexels"),
-    ("wikimedia", "gui.provider.wikimedia"),
-    ("artinstitute", "gui.provider.artinstitute"),
-    ("wallhaven", "gui.provider.wallhaven"),
-    ("unsplash", "gui.provider.unsplash"),
+    (key, f"gui.provider.{key}") for key in ALL_PROVIDERS
 ]
 
 RESOLUTIONS = [
@@ -643,7 +638,7 @@ class SettingsTab(QWidget):
         if self.on_auto_update_changed:
             self.on_auto_update_changed(self.auto_update_toggle.isChecked())
 
-        from .dialogs import info, confirm
+        from .dialogs import info
         info(self, t("gui.settings.success_title"), t("gui.settings.saved"))
 
     def reset_settings(self):

@@ -1,4 +1,4 @@
-#!/usk/bin/env python3
+#!/usr/bin/env python3
 """Tests for wallpaper providers."""
 
 from unittest.mock import patch
@@ -11,7 +11,7 @@ from muralis.providers.artinstitute import ArtInstituteProvider
 class TestProviders:
     """Test all wallpaper providers."""
 
-    @patch('requests.get')
+    @patch('requests.Session.get')
     def test_bing_provider(self, mock_get):
         """Test Bing provider."""
         # Mock the API response
@@ -27,7 +27,7 @@ class TestProviders:
         meta = provider.get_metadata()
         assert 'title' in meta
 
-    @patch('requests.get')
+    @patch('requests.Session.get')
     def test_nasa_provider(self, mock_get):
         """Test NASA provider."""
         mock_get.return_value.status_code = 200
@@ -37,7 +37,7 @@ class TestProviders:
         url = provider.get_daily_url()
         assert url is not None
 
-    @patch('requests.get')
+    @patch('requests.Session.get')
     def test_pexels_provider(self, mock_get):
         """Test Pexels provider."""
         mock_get.return_value.status_code = 200
@@ -48,7 +48,7 @@ class TestProviders:
         assert url is not None
         assert url == 'url.jpg'
 
-    @patch('requests.get')
+    @patch('requests.Session.get')
     def test_wikimedia_provider(self, mock_get):
         """Test Wikimedia provider."""
         mock_get.return_value.status_code = 200
@@ -60,7 +60,7 @@ class TestProviders:
         url = provider.get_daily_url()
         assert url is not None
 
-    @patch('requests.get')
+    @patch('requests.Session.get')
     def test_artinstitute_provider(self, mock_get):
         """Test Art Institute provider."""
         mock_get.return_value.status_code = 200

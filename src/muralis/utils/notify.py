@@ -1,7 +1,6 @@
 """Notification utilities for Muralis."""
 
 import subprocess
-from typing import Optional
 
 def send_notification(title: str, message: str, urgency: str = "normal") -> bool:
     """Send desktop notification.

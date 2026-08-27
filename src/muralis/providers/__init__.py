@@ -1,6 +1,13 @@
-"""Wallpaper providers for Muralis."""
+"""Wallpaper providers for Muralis.
 
-from typing import Dict, Callable
+``PROVIDER_CLASSES`` is the single, authoritative registry of available
+providers. Everything that needs to know "what providers exist" (the CLI
+argparse choices, config validation, the 'list providers' command, provider
+randomisation, and the GUI settings tab) should read from this registry rather
+than re-declaring the provider list.
+"""
+
+from typing import Dict, Callable, List
 
 from muralis.providers.base import WallpaperProvider
 from muralis.providers.bing import BingProvider
@@ -11,32 +18,40 @@ from muralis.providers.pexels import PexelsProvider
 from muralis.providers.wikimedia import WikimediaProvider
 from muralis.providers.artinstitute import ArtInstituteProvider
 
+# Single source of truth for the available providers: name -> class.
+PROVIDER_CLASSES: Dict[str, Callable[..., WallpaperProvider]] = {
+    'bing': BingProvider,
+    'nasa': NasaProvider,
+    'pexels': PexelsProvider,
+    'wikimedia': WikimediaProvider,
+    'artinstitute': ArtInstituteProvider,
+    'wallhaven': WallhavenProvider,
+    'unsplash': UnsplashProvider,
+}
+
+# Ordered list of provider keys (order matters: it defines CLI/GUI ordering).
+ALL_PROVIDERS: List[str] = list(PROVIDER_CLASSES.keys())
+
+
 def get_provider(name: str, config=None) -> WallpaperProvider:
     """Factory function to get provider by name."""
-    providers: Dict[str, Callable[..., WallpaperProvider]] = {
-        'bing': BingProvider,
-        'nasa': NasaProvider,
-        'unsplash': UnsplashProvider,
-        'wallhaven': WallhavenProvider,
-        'pexels': PexelsProvider,
-        'wikimedia': WikimediaProvider,
-        'artinstitute': ArtInstituteProvider
-    }
-    
-    provider_class = providers.get(name.lower())
+    provider_class = PROVIDER_CLASSES.get(name.lower())
     if not provider_class:
-        raise ValueError(f"Unknown provider: {name}. Available: {list(providers.keys())}")
-    
+        raise ValueError(
+            f"Unknown provider: {name}. Available: {ALL_PROVIDERS}")
     return provider_class(config)
+
 
 __all__ = [
     'WallpaperProvider',
     'BingProvider',
-    'NasaProvider', 
+    'NasaProvider',
     'UnsplashProvider',
     'WallhavenProvider',
     'PexelsProvider',
     'WikimediaProvider',
     'ArtInstituteProvider',
-    'get_provider'
+    'PROVIDER_CLASSES',
+    'ALL_PROVIDERS',
+    'get_provider',
 ]

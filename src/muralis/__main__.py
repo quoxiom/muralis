@@ -8,6 +8,7 @@ from pathlib import Path
 from muralis.app import MuralisApp
 from muralis import __version__
 from muralis.i18n import t
+from muralis.providers import ALL_PROVIDERS
 
 
 def parse_arguments():
@@ -34,7 +35,7 @@ def parse_arguments():
     
     parser.add_argument(
         "-p", "--provider",
-        choices=["bing", "nasa", "unsplash", "wallhaven", "pexels", "wikimedia", "artinstitute"],
+        choices=ALL_PROVIDERS,
         help=t("cli.help.provider")
     )
     
@@ -48,6 +49,12 @@ def parse_arguments():
         "--set-daily",
         action="store_true",
         help=t("cli.help.set_daily")
+    )
+    
+    parser.add_argument(
+        "--daemon",
+        action="store_true",
+        help=t("cli.help.daemon")
     )
     
     parser.add_argument(
@@ -253,11 +260,17 @@ def handle_api_key_commands(args, app):
 
 def list_providers():
     """Display list of available providers."""
+    from muralis.utils.api_keys import APIKeyManager
+
     print(t("cli.providers.title"))
     print("=" * 50)
-    for key in ["bing", "nasa", "pexels", "wikimedia", "artinstitute", "wallhaven"]:
-        print(f"  ✅ {key:<13} - {t(f'cli.providers.{key}')}")
-    print(f"  🔑 {'unsplash':<13} - {t('cli.providers.unsplash')}")
+    required = {
+        p for p, cfg in APIKeyManager.PROVIDER_CONFIG.items()
+        if cfg.get('required')
+    }
+    for key in ALL_PROVIDERS:
+        icon = "🔑" if key in required else "✅"
+        print(f"  {icon} {key:<13} - {t(f'cli.providers.{key}')}")
     print(t("cli.providers.legend"))
     print(t("cli.providers.works"))
     print(t("cli.providers.requires_key"))
@@ -327,7 +340,7 @@ def main():
         return list_providers()
     
     # Handle help when no actionable arguments
-    if not (args.once or args.set_daily or args.show_config or 
+    if not (args.once or args.set_daily or args.daemon or args.show_config or 
             args.export_config or args.import_config or args.get or args.set or
             args.reset_config or args.check_keys or args.set_key or 
             args.remove_key or args.get_key_instructions):
@@ -359,6 +372,11 @@ def main():
     if args.once:
         success = app.run_once(args.provider)
         return 0 if success else 1
+    
+    # Handle foreground daemon (blocking auto-update loop)
+    if args.daemon:
+        app.run_daemon()
+        return 0
     
     # Should never reach here
     show_help()

@@ -1,6 +1,5 @@
 """KDE Plasma desktop wallpaper setter."""
 
-import os
 import subprocess
 from .base import WallpaperSetter
 
@@ -25,14 +24,3 @@ class KdeSetter(WallpaperSetter):
                 return True
             except (subprocess.CalledProcessError, FileNotFoundError):
                 return False
-    
-    def supports_da(self) -> bool:
-        """Check if running under KDE."""
-        try:
-            result = subprocess.run(
-                ["kwriteconfig5", "--help"],
-                capture_output=True
-            )
-            return result.returncode == 0 or os.environ.get('KDE_FULL_SESSION') == 'true'
-        except FileNotFoundError:
-            return False

@@ -65,10 +65,10 @@ class UnsplashProvider(WallpaperProvider):
                 'fit': 'crop'
             }
             
-            response = requests.get(
-                self.API_URL, 
-                headers=headers, 
-                params=params, 
+            response = self._get(
+                self.API_URL,
+                headers=headers,
+                params=params,
                 timeout=15
             )
             response.raise_for_status()
@@ -105,7 +105,7 @@ class UnsplashProvider(WallpaperProvider):
             api_key = self._get_api_key()
             headers = {'Authorization': f'Client-ID {api_key}'}
             
-            response = requests.get(self.API_URL, headers=headers, timeout=10)
+            response = self._get(self.API_URL, headers=headers, timeout=10)
             response.raise_for_status()
             data = response.json()
             

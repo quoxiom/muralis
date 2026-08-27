@@ -10,7 +10,7 @@ substituted into the QSS template below.
 import json
 import string
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 
 from .icons import ICONS_DIR
 

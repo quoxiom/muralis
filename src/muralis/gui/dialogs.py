@@ -7,7 +7,6 @@ dialogs stay consistent with the theme.
 
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import Qt
-from typing import Optional
 
 from .icons import make_icon, ICON_IDLE
 

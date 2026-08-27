@@ -1,9 +1,7 @@
 """API key management for Muralis providers."""
 
 import re
-import os
-from typing import Dict, List, Tuple, Optional, Any
-from pathlib import Path
+from typing import Dict, List, Optional, Any
 
 from muralis.i18n import t
 
@@ -186,9 +184,3 @@ To add Flickr support:
             instructions = self.PROVIDER_CONFIG[provider].get('instructions')
             return instructions if isinstance(instructions, str) else None
         return None
-
-
-def validate_unsplash_key(key: str) -> bool:
-    """Quick validation for Unsplash API key format."""
-    pattern = r'^[a-zA-Z0-9_-]{32}$'
-    return bool(re.match(pattern, key))

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel>=0.37.0", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=61.0", "wheel>=0.37.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,18 +7,16 @@ name = "muralis"
 dynamic = ["version"]
 description = "Smart Wallpaper Manager for Linux Desktops"
 readme = "README.md"
-requires-python = ">=3.8"
-license = { text = "MIT" }
-authors = [{ name = "Qamber Haidry", email = "qamber@quoxiom.com" }]
-maintainers = [{ name = "Quoxiom", email = "support@quoxiom.com" }]
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "Qamber Haidry", email = "qamber.haidry@quoxiom.com" }]
+maintainers = [{ name = "Qamber Haidry", email = "qamber.haidry@quoxiom.com" }]
 keywords = ["wallpaper", "desktop", "linux", "automation", "background"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
     "Topic :: Desktop Environment",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -54,11 +52,11 @@ full = [
 all = ["muralis[dev,gui,test,docs,full]"]
 
 [project.urls]
-"Homepage" = "https://github.com/quoxiom/qutility-muralis"
-"Documentation" = "https://github.com/quoxiom/qutility-muralis/wiki"
-"Repository" = "https://github.com/quoxiom/qutility-muralis"
-"Issues" = "https://github.com/quoxiom/qutility-muralis/issues"
-"Changelog" = "https://github.com/quoxiom/qutility-muralis/releases"
+"Homepage" = "https://github.com/quoxiom/muralis"
+"Documentation" = "https://quoxiom.github.io/muralis/"
+"Repository" = "https://github.com/quoxiom/muralis"
+"Issues" = "https://github.com/quoxiom/muralis/issues"
+"Changelog" = "https://github.com/quoxiom/muralis/releases"
 
 [project.scripts]
 muralis = "muralis.__main__:main"
@@ -70,14 +68,20 @@ packages = { find = { where = ["src"] } }
 include-package-data = true
 
 [tool.setuptools.package-data]
-muralis = ["py.typed", "*.ini", "i18n/*.json", "gui/themes/*.json", "gui/icons/*.svg"]
+muralis = [
+    "py.typed",
+    "*.ini",
+    "i18n/*.json",
+    "gui/themes/*.json",
+    "gui/icons/*.svg",
+]
 
-[tool.setuptools_scm]
-write_to = "src/muralis/_version.py"
+[tool.setuptools.dynamic]
+version = { attr = "muralis.__version__" }
 
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+target-version = ['py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -120,7 +124,7 @@ exclude = [
 per-file-ignores = "__init__.py:F401"
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true

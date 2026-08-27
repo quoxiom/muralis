@@ -1,6 +1,5 @@
 """Wikimedia Commons provider - Public domain artwork."""
 
-import requests
 from typing import Dict, Optional, Any
 import random
 from .base import WallpaperProvider
@@ -42,7 +41,7 @@ class WikimediaProvider(WallpaperProvider):
                 'iiprop': 'url|extmetadata'
             }
             
-            response = requests.get(self.API_URL, params=params, timeout=15)
+            response = self._get(self.API_URL, params=params, timeout=15)
             response.raise_for_status()
             data = response.json()
             
@@ -74,7 +73,7 @@ class WikimediaProvider(WallpaperProvider):
                 'rnlimit': 1
             }
             
-            response = requests.get(self.API_URL, params=params, timeout=10)
+            response = self._get(self.API_URL, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
             

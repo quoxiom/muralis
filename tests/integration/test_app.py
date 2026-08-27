@@ -24,162 +24,173 @@ class TestMuralisAppIntegration:
         
         self.app = MuralisApp(str(self.config_path), verbose=False)
     
+    @staticmethod
+    def _fake_download(url, save_path):
+        """Side-effect for MuralisApp.download_image that writes a real JPEG.
+
+        Returns True and creates a small valid image at save_path so the rest
+        of the update pipeline (stat, cleanup, effects, unlink) works.
+        """
+        from PIL import Image
+        from pathlib import Path
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (8, 8), (20, 40, 60)).save(save_path, "JPEG")
+        return True
+
     @patch('muralis.providers.bing.BingProvider.get_daily_url')
     @patch('muralis.providers.bing.BingProvider.get_metadata')
-    @patch('muralis.setter.gnome.GnomeSetter.set_wallpaper')
-    @patch('muralis.utils.downloader.download_image')
-    def test_run_once_success(self, mock_download, mock_setter, mock_metadata, mock_url):
+    @patch('muralis.app.MuralisApp.download_image')
+    def test_run_once_success(self, mock_download, mock_metadata, mock_url):
         """Test successful wallpaper update."""
         # Mock provider responses
         mock_url.return_value = "https://example.com/wallpaper.jpg"
         mock_metadata.return_value = {'title': 'Test Wallpaper', 'copyright': 'Test Author'}
-        
-        # Mock download
-        mock_download.return_value = True
-        
-        # Mock setter
-        mock_setter.return_value = True
-        
-        # Run the app
-        result = self.app.run_once(provider_override='bing')
-        
-        assert result == True
-        mock_url.assert_called_once()
-        mock_download.assert_called_once()
-        mock_setter.assert_called_once()
-    
+
+        # Fake a real download (creates a valid image file and returns True)
+        mock_download.side_effect = self._fake_download
+
+        # Mock setter on the actual setter instance chosen during setup
+        with patch.object(self.app.setter, 'set_wallpaper', return_value=True) as mock_setter:
+            result = self.app.run_once(provider_override='bing')
+
+            assert result is True
+            mock_url.assert_called_once()
+            mock_download.assert_called_once()
+            mock_setter.assert_called_once()
+
     @patch('muralis.providers.bing.BingProvider.get_daily_url')
     def test_run_once_no_url(self, mock_url):
         """Test when provider returns no URL."""
         mock_url.return_value = None
-        
+
         result = self.app.run_once(provider_override='bing')
-        
-        assert result == False
-    
+
+        assert result is False
+
     @patch('muralis.providers.bing.BingProvider.get_daily_url')
-    @patch('muralis.utils.downloader.download_image')
+    @patch('muralis.app.MuralisApp.download_image')
     def test_run_once_download_fails(self, mock_download, mock_url):
         """Test when download fails."""
         mock_url.return_value = "https://example.com/wallpaper.jpg"
         mock_download.return_value = False
-        
+
         result = self.app.run_once(provider_override='bing')
-        
-        assert result == False
-    
+
+        assert result is False
+
     @patch('muralis.providers.bing.BingProvider.get_daily_url')
-    @patch('muralis.utils.downloader.download_image')
-    @patch('muralis.setter.gnome.GnomeSetter.set_wallpaper')
-    def test_run_once_setter_fails(self, mock_setter, mock_download, mock_url):
+    @patch('muralis.app.MuralisApp.download_image')
+    def test_run_once_setter_fails(self, mock_download, mock_url):
         """Test when setting wallpaper fails."""
         mock_url.return_value = "https://example.com/wallpaper.jpg"
-        mock_download.return_value = True
-        mock_setter.return_value = False
-        
-        result = self.app.run_once(provider_override='bing')
-        
-        assert result == False
-    
+        mock_download.side_effect = self._fake_download
+
+        with patch.object(self.app.setter, 'set_wallpaper', return_value=False) as mock_setter:
+            result = self.app.run_once(provider_override='bing')
+
+            assert result is False
+            mock_setter.assert_called_once()
+
     def test_get_provider_valid(self):
         """Test getting a valid provider."""
         provider = self.app.get_provider('bing')
         assert provider is not None
         assert provider.name == 'bing'
-    
+
     def test_get_provider_with_fallback(self):
         """Test provider fallback when primary fails."""
         # Test with invalid provider - should fallback to bing
         with patch('muralis.providers.get_provider') as mock_get:
             mock_get.side_effect = Exception("Provider failed")
-            
+
             # Should fallback to bing
             provider = self.app.get_provider('invalid')
             # This will use fallback mechanism in app.py
-    
+
     def test_get_network_session(self):
         """Test network session creation."""
         session = self.app.get_network_session()
         assert session is not None
         assert hasattr(session, 'get')
         assert hasattr(session, 'post')
-    
+
     def test_get_timeout(self):
         """Test getting timeout from config."""
         timeout = self.app.get_timeout()
         assert isinstance(timeout, int)
         assert timeout > 0
-    
+
     @patch('muralis.scheduler.SchedulerManager.setup')
     def test_setup_scheduler(self, mock_scheduler):
         """Test scheduler setup."""
         mock_scheduler.return_value = True
-        
+
         result = self.app.setup_scheduler()
-        
-        assert result == True
+
+        assert result is True
         mock_scheduler.assert_called_once()
-    
+
     def test_show_config(self):
         """Test showing configuration (just verify it doesn't crash)."""
         import sys
         from io import StringIO
-        
+
         captured_output = StringIO()
         sys.stdout = captured_output
-        
+
         self.app.show_config()
-        
+
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
         assert "Muralis Configuration" in output
-    
+
     @patch('muralis.providers.bing.BingProvider.get_daily_url')
-    @patch('muralis.utils.downloader.download_image')
-    @patch('muralis.setter.gnome.GnomeSetter.set_wallpaper')
-    def test_run_once_without_saving(self, mock_setter, mock_download, mock_url):
+    @patch('muralis.app.MuralisApp.download_image')
+    def test_run_once_without_saving(self, mock_download, mock_url):
         """Test run once with save_downloads disabled."""
         # Configure to not save downloads
         self.config.set('storage', 'save_downloads', 'false')
-        
+
         mock_url.return_value = "https://example.com/wallpaper.jpg"
-        mock_download.return_value = True
-        mock_setter.return_value = True
-        
-        result = self.app.run_once(provider_override='bing')
-        
-        assert result == True
-    
+        mock_download.side_effect = self._fake_download
+
+        with patch.object(self.app.setter, 'set_wallpaper', return_value=True):
+            result = self.app.run_once(provider_override='bing')
+
+            assert result is True
+
     @patch('muralis.providers.bing.BingProvider.get_daily_url')
-    @patch('muralis.utils.downloader.download_image')
-    @patch('muralis.setter.gnome.GnomeSetter.set_wallpaper')
-    def test_run_once_with_random_provider(self, mock_setter, mock_download, mock_url):
+    @patch('muralis.providers.bing.BingProvider.get_metadata')
+    @patch('muralis.app.MuralisApp.download_image')
+    @patch('random.choice')
+    def test_run_once_with_random_provider(self, mock_choice, mock_download, mock_metadata, mock_url):
         """Test run once with random provider enabled."""
         self.config.set('general', 'randomize_provider', 'true')
-        
+
+        mock_choice.return_value = 'bing'  # pin the "random" pick so the test is deterministic
         mock_url.return_value = "https://example.com/wallpaper.jpg"
-        mock_download.return_value = True
-        mock_setter.return_value = True
-        
-        result = self.app.run_once()  # No provider override
-        
-        assert result == True
-    
+        mock_metadata.return_value = {'title': 'Test Wallpaper', 'copyright': 'Test Author'}
+        mock_download.side_effect = self._fake_download
+
+        with patch.object(self.app.setter, 'set_wallpaper', return_value=True):
+            result = self.app.run_once()  # No provider override
+
+            assert result is True
+
     @patch('muralis.providers.bing.BingProvider.get_daily_url')
-    @patch('muralis.utils.downloader.download_image')
-    @patch('muralis.setter.gnome.GnomeSetter.set_wallpaper')
-    def test_run_once_with_effects(self, mock_setter, mock_download, mock_url):
+    @patch('muralis.app.MuralisApp.download_image')
+    def test_run_once_with_effects(self, mock_download, mock_url):
         """Test run once with image effects enabled."""
         self.config.set('image', 'apply_effects', 'true')
         self.config.set('image', 'effect_type', 'blur')
-        
+
         mock_url.return_value = "https://example.com/wallpaper.jpg"
-        mock_download.return_value = True
-        mock_setter.return_value = True
-        
-        result = self.app.run_once(provider_override='bing')
-        
-        assert result == True
+        mock_download.side_effect = self._fake_download
+
+        with patch.object(self.app.setter, 'set_wallpaper', return_value=True):
+            result = self.app.run_once(provider_override='bing')
+
+            assert result is True
     
     def test_should_update_by_default(self):
         """Test should_update returns True by default."""

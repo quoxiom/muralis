@@ -1,8 +1,10 @@
 # Muralis Makefile
-# Part of Qutility Suite by Quoxiom
+# Muralis - a small wallpaper utility by Quoxiom
 
 .PHONY: help install uninstall dev test clean run setup-service show-config \
-        lint format coverage docs build release check
+        lint format coverage docs build release check \
+        test-unit test-integration test-coverage test-quick test-slow \
+        test-verbose test-watch test-failed
 
 # Colors for output
 RED := \033[0;31m
@@ -15,7 +17,7 @@ NC := \033[0m # No Color
 help:
 	@echo "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 	@echo "${GREEN}Muralis - Smart Wallpaper Manager${NC}"
-	@echo "${BLUE}Part of Qutility Suite by Quoxiom${NC}"
+	@echo "${BLUE}Muralis - a small wallpaper utility by Quoxiom${NC}"
 	@echo "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 	@echo ""
 	@echo "${YELLOW}Installation & Management:${NC}"
@@ -59,18 +61,6 @@ dev:
 	@pip install -e .[dev]
 	@echo "${GREEN}✓ Development installation complete${NC}"
 	@echo "${YELLOW}Note: Run 'source venv/bin/activate' if using virtual environment${NC}"
-
-# Testing
-test:
-	@echo "${BLUE}Running tests...${NC}"
-	@pytest tests/ -v --tb=short
-	@echo "${GREEN}✓ All tests passed${NC}"
-
-test-unit:
-	@pytest tests/unit/ -v
-
-test-integration:
-	@pytest tests/integration/ -v
 
 # Code quality
 lint:
@@ -191,9 +181,6 @@ status:
 		count=$$(ls -1 ~/Pictures/Muralis/muralis_*.jpg 2>/dev/null | wc -l); \
 		echo "Saved wallpapers: $$count"; \
 	fi
-
-# Testing targets
-.PHONY: test test-unit test-integration test-coverage test-quick
 
 test:
 	@echo "Running all tests..."

@@ -231,7 +231,7 @@ examples/*.jpeg
 debug.log
 trace.log
 
-# Virtual environment (but keep requirements)
+# Virtual environment
 venv/
 .venv/
 ENV/
@@ -280,6 +280,4 @@ env/
 # macOS specific
 *.dmg
 *.app
-# Local Reasonix session artifacts
-.reasonix/
 scripts/commands.txt

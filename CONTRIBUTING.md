@@ -2,31 +2,33 @@
 
 ## Welcome
 
-Welcome to the Muralis community! We appreciate your interest in improving this project.
+Welcome to the Muralis project! Thanks for your interest in improving this
+small wallpaper utility.
 
-## Getting Started
+## Getting started
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - Git
 - Basic understanding of Linux desktop environments
 
-### Setup Development Environment
+### Set up the development environment
 
 ```bash
-git clone https://github.com/quoxiom/qutility-muralis.git
-cd qutility-muralis
+git clone https://github.com/quoxiom/muralis.git
+cd muralis
 python -m venv venv
 source venv/bin/activate
-pip install -e [dev]
+pip install -e ".[dev]"
+pytest tests/
 ```
 
-## How to Contribute
+## How to contribute
 
-### Reporting Bugs
+### Reporting bugs
 
-Before submitting a bug, please check the issue tracker. Use the following template:
+Before submitting a bug, please check the issue tracker. Use this template:
 
 ```markdown
 #### Summary
@@ -43,17 +45,17 @@ Before submitting a bug, please check the issue tracker. Use the following templ
 [What actually happens]
 
 #### System Information
-- OS: [Ubuntu 22.04]
-- Python: [3.10.12]
-- Muralis: [1.0.0]
+- OS: [Ubuntu 24.04]
+- Python: [3.12]
+- Muralis: [0.4.0]
 - DE: [GNOME]
 ```
 
-### Suggesting Enhancements
+### Suggesting enhancements
 
 Open an issue with the feature request template.
 
-### Code Style Guidelines
+### Code style
 
 - Follow PEP 8
 - Line length: 100 characters
@@ -63,15 +65,15 @@ Open an issue with the feature request template.
 #### Testing
 
 ```bash
-make test      # Run all tests
-make coverage  # Generate coverage report
-make lint       # Check code style
-make format     # Auto-format code
+make test       # run the test suite
+make coverage   # generate a coverage report
+make lint       # flake8
+make format     # black
 ```
 
-#### Commit Messages
+#### Commit messages
 
-Use conventional commits:
+Use [conventional commits](https://www.conventionalcommits.org/):
 
 ```bash
 git commit -m "feat(providers): add Unsplash provider"
@@ -79,51 +81,45 @@ git commit -m "feat(providers): add Unsplash provider"
 
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`
 
-#### Pull Request Process
+#### Pull request process
 
 1. Fork the repository
 2. Create a feature branch
 
- ``bash
-git checkout -b feature/your-feature
-```
+   ```bash
+   git checkout -b feature/your-feature
+   ```
 
-3. Make your changes
-4. Run tests locally
+3. Make your changes and run the tests locally (`make test`)
+4. Push to your fork
 
-```bash
-make test
-```
+   ```bash
+   git push origin feature/your-feature
+   ```
 
-5. Push to your fork
+5. Open a pull request
 
-```bash
-git push origin feature/your-feature
-```
+## Adding a new provider
 
-6. Open a Pull Request
-
-## Adding a New Provider
-
-1. Create `src/muralis/providers/yourprovider.py`
-
-2. Extend `WallpaperProvider` base class
-
-3. Implement `name`, `get_daily_url`, `get_metadata`
-
-4. Register in `__init__.py`
-
-5. Add tests
+1. Create `src/muralis/providers/yourprovider.py`.
+2. Extend the `WallpaperProvider` base class and implement `name`,
+   `get_daily_url`, and `get_metadata`.
+3. Register the class in the provider registry at
+   `src/muralis/providers/__init__.py` (the `PROVIDER_CLASSES` dict). The CLI,
+   GUI and config all pick new providers up automatically from that single
+   list.
+4. Add tests under `tests/`.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions will be licensed under the
+MIT License.
 
 ## Contact
 
 - GitHub: [Quoxiom](https://github.com/quoxiom)
-- Email: contributors@quoxiom.com
+- Project: [quoxiom/muralis](https://github.com/quoxiom/muralis)
 
 ---
 
-**Thank you for contributing!** 🙊
+**Thank you for contributing!** 🙌

@@ -1,6 +1,5 @@
 """Bing wallpaper provider with 4K/UHD support."""
 
-import requests
 from typing import Dict, Optional, List
 from .base import WallpaperProvider
 
@@ -33,8 +32,8 @@ class BingProvider(WallpaperProvider):
             headers = {
                 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
             }
-            
-            response = requests.get(self.API_URL, headers=headers, timeout=10)
+
+            response = self._get(self.API_URL, headers=headers, timeout=10)
             response.raise_for_status()
             data = response.json()
             
@@ -69,7 +68,7 @@ class BingProvider(WallpaperProvider):
     def get_metadata(self) -> Dict:
         """Get Bing wallpaper metadata."""
         try:
-            response = requests.get(self.API_URL, timeout=10)
+            response = self._get(self.API_URL, timeout=10)
             response.raise_for_status()
             data = response.json()
             

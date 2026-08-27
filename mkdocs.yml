@@ -1,0 +1,47 @@
+site_name: Muralis
+site_description: "Smart Wallpaper Manager for Linux Desktops"
+site_author: Quoxiom
+repo_url: https://github.com/quoxiom/muralis
+edit_uri: ""
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.expand
+    - navigation.top
+    - toc.integrate
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Usage: usage.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - def_list
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.details
+  - pymdownx.tabbed
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search

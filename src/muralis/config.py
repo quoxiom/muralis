@@ -8,9 +8,10 @@ Settings are stored as JSON. Existing ``config.ini`` files are migrated to
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List
-from datetime import time
 
 from muralis.i18n import t
+from muralis.providers.pexels import PexelsProvider
+from muralis.providers import ALL_PROVIDERS
 
 
 class ConfigValidationError(Exception):
@@ -210,34 +211,48 @@ class ConfigManager:
         except (ValueError, TypeError):
             return fallback
 
-    def get_float(self, section: str, key: str, fallback: float = 0.0) -> float:
-        val = self.get_str(section, key, str(fallback))
-        try:
-            return float(val)
-        except (ValueError, TypeError):
-            return fallback
-
     def get_optional(self, section: str, key: str) -> Optional[str]:
         value = self.get_str(section, key)
         return value if value else None
 
-    def get_time(self, section: str, key: str) -> Optional[time]:
-        time_str = self.get_optional(section, key)
-        if time_str and self._validate_time(time_str):
-            hours, minutes = map(int, time_str.split(':'))
-            return time(hour=hours, minute=minutes)
-        return None
+    # ------------------------------------------------------------------
+    # ConfigParser-compatible surface
+    #
+    # These are thin aliases so the GUI and legacy call sites can keep using
+    # ConfigParser-style calls (``get``/``getboolean``/``getint``/``set`` and
+    # section subscripting) without a separate facade. ConfigManager is the
+    # single config source.
+    # ------------------------------------------------------------------
+    def get(self, section: str, key: str, fallback: str = "") -> str:
+        """ConfigParser-style ``get`` (alias for ``get_str``)."""
+        return self.get_str(section, key, fallback)
 
-    def get_resolution(self, section: str, key: str):
-        res_str = self.get_str(section, key, "1920x1080")
-        if 'x' in res_str:
-            parts = res_str.split('x')
-            if len(parts) == 2:
-                try:
-                    return (int(parts[0]), int(parts[1]))
-                except ValueError:
-                    pass
-        return (1920, 1080)
+    def getboolean(self, section: str, key: str, fallback: bool = False) -> bool:
+        """ConfigParser-style ``getboolean`` (alias for ``get_bool``)."""
+        return self.get_bool(section, key, fallback)
+
+    def getint(self, section: str, key: str, fallback: int = 0) -> int:
+        """ConfigParser-style ``getint`` (alias for ``get_int``)."""
+        return self.get_int(section, key, fallback)
+
+    def has_section(self, section: str) -> bool:
+        """ConfigParser-style ``has_section``."""
+        return section in self.config
+
+    def setdefault_section(self, section: str) -> Dict[str, str]:
+        """Return (creating if needed) the mutable option mapping for a section."""
+        return self.config.setdefault(section, {})
+
+    def __contains__(self, section: object) -> bool:
+        return str(section) in self.config
+
+    def __getitem__(self, section: str) -> Dict[str, str]:
+        return self.config.setdefault(section, {})
+
+    def __setitem__(self, section: str, options: Dict[str, Any]):
+        current = self.config.setdefault(section, {})
+        for key, value in options.items():
+            current[str(key)] = str(value)
 
     # ------------------------------------------------------------------
     # Setters
@@ -389,7 +404,7 @@ class ConfigManager:
             "proxy_url": "",
             "proxy_username": "",
             "proxy_password": "",
-            "user_agent": "Muralis/1.0 (Qutility Suite)",
+            "user_agent": "Muralis/1.0",
             "verify_ssl": "true",
             "download_timeout": "30",
             "max_redirects": "5"
@@ -411,6 +426,9 @@ class ConfigManager:
             "debug_mode": "false",
             "log_http_traffic": "false"
         },
+        "notifications": {
+            "enabled": "true"
+        },
         "advanced": {
             "config_version": "2",
             "experimental_features": "false",
@@ -421,14 +439,16 @@ class ConfigManager:
         },
         "api_keys": {
             "unsplash_key": "",
-            "pexels_key": "563492ad6f91700001000001d6d5e3b5e5a14e8b8b9b9b9b9b9b9",
+            # Public demo key (rate-limited). Users should register their own at
+            # https://www.pexels.com/api and override with `muralis --set-key pexels ...`.
+            "pexels_key": PexelsProvider.API_KEY,
             "flickr_key": "",
             "flickr_secret": ""
         }
     }
 
     VALIDATION_RULES = {
-        "general.provider": {"type": "choice", "choices": ["bing", "nasa", "unsplash", "pexels", "wikimedia", "artinstitute", "wallhaven"]},
+        "general.provider": {"type": "choice", "choices": ALL_PROVIDERS},
         "general.update_interval": {"type": "int", "min": 300, "max": 604800},
         "image.resolution": {"type": "resolution"},
         "image.jpeg_quality": {"type": "int", "min": 1, "max": 100},

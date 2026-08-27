@@ -1,13 +1,14 @@
 {
   "cli": {
     "description": "Muralis - Smart Wallpaper Manager for Linux",
-    "epilog": "Part of Qutility Suite by Quoxiom",
+    "epilog": "Muralis - a small wallpaper utility by Quoxiom",
     "help": {
       "gui": "Launch the graphical user interface (same as 'muralis-gui')",
       "config": "Configuration file path (default: ~/.config/muralis/config.ini)",
       "provider": "Override wallpaper provider for this run",
       "once": "Run one update cycle and exit",
       "set_daily": "Setup systemd timer for daily automatic updates",
+      "daemon": "Run as a foreground auto-update daemon",
       "list_providers": "List all available wallpaper providers",
       "show_config": "Display current configuration",
       "verbose": "Enable verbose output for debugging",
@@ -82,7 +83,7 @@
     },
     "banner": {
       "title": "Muralis v{version} - Smart Wallpaper Manager",
-      "part_of": "Part of Qutility Suite by Quoxiom",
+      "part_of": "Muralis - a small wallpaper utility by Quoxiom",
       "quick_start": "📌 QUICK START",
       "once_line": "  muralis --once                    Get today's wallpaper",
       "once_provider_line": "  muralis --once --provider nasa    Use specific provider",
@@ -109,7 +110,7 @@
       "tips_verbose": "  • Run with --verbose for debug output",
       "docs": "📚 FULL DOCUMENTATION",
       "docs_help_line": "  muralis --help                    Show this help",
-      "docs_url": "  https://github.com/quoxiom/qutility-muralis"
+      "docs_url": "  https://github.com/quoxiom/muralis"
     },
     "sched": {
       "systemd_ok": "✓ Muralis daily timer installed successfully (systemd)",
@@ -118,7 +119,8 @@
       "cron_fail": "Could not setup cron job: {error}",
       "auto_disabled": "Auto-update disabled in config",
       "auto_enabled": "Auto-update enabled, running every {hours} hours",
-      "cycle": "Update cycle would run here"
+      "cycle": "Update cycle would run here",
+      "cycle_error": "Scheduled update failed: {error}"
     },
     "config": {
       "created": "✓ Created default configuration at {path}",
@@ -154,7 +156,7 @@
       "history": "History",
       "settings": "Settings",
       "about": "About",
-      "footer": "v{version} · Qutility Suite",
+      "footer": "v{version} · Muralis",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar"
     },
@@ -260,14 +262,14 @@
       }
     },
     "about": {
-      "desc": "Smart Wallpaper Manager for Linux desktops.\nPart of the Qutility Suite by Quoxiom.",
+      "desc": "Smart Wallpaper Manager for Linux desktops.\nA small wallpaper utility by Quoxiom.",
       "version": "Version {version}",
-      "github": "github.com/quoxiom/qutility-muralis",
+      "github": "github.com/quoxiom/muralis",
       "docs": "Documentation"
     },
     "dialog": {
       "about_title": "About Muralis",
-      "about_html": "<h2>Muralis</h2><p>Smart Wallpaper Manager for Linux</p><p>Version {version}</p><p>Part of Qutility Suite by Quoxiom</p><p>© 2026 Quoxiom (Qamber Haidry)</p><p><a href='https://github.com/quoxiom/qutility-muralis'>GitHub</a></p>",
+      "about_html": "<h2>Muralis</h2><p>Smart Wallpaper Manager for Linux</p><p>Version {version}</p><p>A small wallpaper utility by Quoxiom</p><p>© 2026 Quoxiom (Qamber Haidry)</p><p><a href='https://github.com/quoxiom/muralis'>GitHub</a></p>",
       "docs_title": "Documentation",
       "docs_text": "Please visit:\n{url}",
       "error_title": "Error",

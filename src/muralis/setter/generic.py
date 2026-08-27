@@ -1,7 +1,6 @@
 """Generic wallpaper setter for unknown desktop environments."""
 
 import subprocess
-from pathlib import Path
 from .base import WallpaperSetter
 
 class GenericSetter(WallpaperSetter):
@@ -37,13 +36,9 @@ class GenericSetter(WallpaperSetter):
         
         for method in methods:
             try:
-                result = subprocess.run(method, check=True, capture_output=True, text=True)
+                subprocess.run(method, check=True, capture_output=True, text=True)
                 return True
             except (subprocess.CalledProcessError, FileNotFoundError):
                 continue
         
         return False
-    
-    def supports_da(self) -> bool:
-        """Generic setter always works as fallback."""
-        return True

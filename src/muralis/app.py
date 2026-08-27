@@ -3,10 +3,9 @@
 import logging
 import requests
 from pathlib import Path
-from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional
 from muralis.config import ConfigManager
-from muralis.providers import get_provider
+from muralis.providers import get_provider, ALL_PROVIDERS
 from muralis.setter import get_wallpaper_setter
 from muralis.storage import StorageManager
 from muralis.scheduler import SchedulerManager
@@ -31,20 +30,26 @@ class MuralisApp:
         # Setup logging
         log_level = logging.DEBUG if verbose else logging.INFO
         log_file = self.config.get_log_file()
-        log_file.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Configure logging
+
+        # Configure logging. Tolerate an unwritable log directory (e.g.
+        # headless/read-only installs): fall back to console-only logging
+        # rather than crashing at startup.
+        handlers = [logging.StreamHandler()]
+        try:
+            log_file.parent.mkdir(parents=True, exist_ok=True)
+            handlers.append(logging.FileHandler(log_file))
+        except (OSError, PermissionError, ValueError):
+            pass
+
         logging.basicConfig(
             level=log_level,
             format='%(asctime)s - Muralis - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S',
-            handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler()
-            ]
+            handlers=handlers
         )
         self.logger = logging.getLogger("muralis")
-        
+        self.log_file = log_file
+
         self.logger.info(f"Muralis v{self._get_version()} initialized")
         self.logger.debug(f"Config file: {self.config.config_path}")
         self.logger.debug(f"Log file: {log_file}")
@@ -59,30 +64,15 @@ class MuralisApp:
     
     def get_network_session(self) -> requests.Session:
         """Create requests session with proxy settings.
-        
+
         Returns:
             Configured requests Session object
         """
-        session = requests.Session()
-        
-        # Configure proxy
+        from muralis.utils.network import build_session
+        session = build_session(self.config)
         proxy_settings = self.config.get_proxy_settings()
         if proxy_settings:
-            session.proxies.update(proxy_settings)
             self.logger.debug(f"Proxy configured: {list(proxy_settings.keys())}")
-        
-        # Configure user agent
-        user_agent = self.config.get_str('networking', 'user_agent', 'Muralis/1.0')
-        session.headers.update({'User-Agent': user_agent})
-        
-        # Verify SSL
-        verify_ssl = self.config.get_bool('networking', 'verify_ssl', True)
-        session.verify = verify_ssl
-        
-        # Set max redirects
-        max_redirects = self.config.get_int('networking', 'max_redirects', 5)
-        session.max_redirects = max_redirects
-        
         return session
     
     def get_timeout(self) -> int:
@@ -95,54 +85,28 @@ class MuralisApp:
     
     def download_image(self, url: str, save_path: Path) -> bool:
         """Download image with proper timeout handling.
-        
+
+        The streaming + retry logic lives in ``muralis.utils.downloader``; this
+        thin wrapper supplies the configured network session (proxy, SSL,
+        user-agent, redirects) and the configured timeout.
+
         Args:
             url: Image URL to download
             save_path: Path to save the image
-            
+
         Returns:
             True if successful, False otherwise
         """
-        session = self.get_network_session()
-        timeout = self.get_timeout()
-        
-        try:
-            self.logger.info(f"Downloading from: {url[:80]}...")
-            self.logger.debug(f"Timeout: {timeout}s, Save path: {save_path}")
-            
-            response = session.get(url, timeout=timeout, stream=True)
-            response.raise_for_status()
-            
-            # Check content type
-            content_type = response.headers.get('content-type', '')
-            if 'image' not in content_type:
-                self.logger.warning(f"URL may not be an image (Content-Type: {content_type})")
-            
-            # Save image
-            save_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(save_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-            
-            # Verify file was created
-            if save_path.exists() and save_path.stat().st_size > 0:
-                file_size = save_path.stat().st_size
-                self.logger.info(f"✓ Downloaded {file_size:,} bytes to {save_path.name}")
-                return True
-            else:
-                self.logger.error("Downloaded file is empty")
-                return False
-                
-        except requests.Timeout:
-            self.logger.error(f"Download timed out after {timeout} seconds")
-            return False
-        except requests.RequestException as e:
-            self.logger.error(f"Download failed: {e}")
-            return False
-        except Exception as e:
-            self.logger.error(f"Unexpected error during download: {e}")
-            return False
+        from muralis.utils.downloader import download_image as _download
+
+        self.logger.info(f"Downloading from: {url[:80]}...")
+        ok = _download(url, str(save_path), timeout=self.get_timeout(),
+                       session=self.get_network_session())
+        if ok and save_path.exists():
+            self.logger.info(f"✓ Downloaded {save_path.stat().st_size:,} bytes to {save_path.name}")
+        elif not ok:
+            self.logger.error("Failed to download image")
+        return ok
     
     def get_provider(self, provider_name: Optional[str] = None):
         """Get provider instance with fallback support.
@@ -159,8 +123,7 @@ class MuralisApp:
         # Randomize provider if enabled
         if self.config.get_bool('general', 'randomize_provider', False):
             import random
-            providers = ['bing', 'nasa', 'pexels', 'wikimedia', 'artinstitute']
-            provider_name = random.choice(providers)
+            provider_name = random.choice(ALL_PROVIDERS)
             self.logger.info(f"🎲 Randomized provider: {provider_name}")
         
         # Get provider
@@ -247,97 +210,35 @@ class MuralisApp:
     
     def run_once(self, provider_override: Optional[str] = None) -> bool:
         """Run one wallpaper update cycle.
-        
+
         Args:
             provider_override: Optional provider name to override config
-            
+
         Returns:
             True if successful, False otherwise
         """
         self.logger.info("🖼️  Starting Muralis wallpaper update...")
-        
+
         # Check scheduling rules
         if not self.should_update():
             return False
-        
+
         # Get provider
         try:
             provider = self.get_provider(provider_override)
-            self.logger.info(f"📡 Using provider: {provider.name}")
         except Exception as e:
             self.logger.error(f"Failed to get provider: {e}")
             return False
-        
-        try:
-            # Get wallpaper URL
-            resolution = self.config.get_str('image', 'resolution', '3840x2160')
-            self.logger.debug(f"Requested resolution: {resolution}")
-            
-            url = provider.get_daily_url(resolution)
-            if not url:
-                self.logger.error("❌ Failed to get wallpaper URL from provider")
-                return False
-            
-            self.logger.debug(f"Download URL: {url[:100]}...")
-            
-            # Generate filename
-            download_dir = self.config.get_download_dir()
-            date_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-            
-            # Get metadata for better filename
-            metadata = provider.get_metadata()
-            title = metadata.get('title', provider.name)
-            safe_title = "".join(c for c in title[:30] if c.isalnum() or c in (' ', '-', '_')).strip()
-            filename = f"muralis_{date_str}_{provider.name}_{safe_title}.jpg"
-            image_path = download_dir / filename
-            
-            # Download image
-            if not self.download_image(url, image_path):
-                return False
-            
-            # Apply effects if configured
-            final_path = image_path
-            if self.config.get_bool('image', 'apply_effects', False):
-                from muralis.utils.effects import apply_effect
-                effect_type = self.config.get_str('image', 'effect_type', 'none')
-                if effect_type != 'none':
-                    self.logger.info(f"🎨 Applying effect: {effect_type}")
-                    final_path = apply_effect(str(image_path), effect_type)
-            
-            # Set wallpaper
-            self.logger.info("🖥️  Setting wallpaper...")
-            if not self.setter.set_wallpaper(str(final_path)):
-                self.logger.error("❌ Failed to set wallpaper")
-                return False
-            
-            self.logger.info("✅ Wallpaper set successfully")
-            
-            # Handle storage cleanup
-            if not self.config.get_bool('storage', 'save_downloads', True):
-                image_path.unlink()
-                if final_path != image_path:
-                    final_path.unlink()
-                self.logger.info("🗑️  Deleted temporary wallpaper (save_downloads=false)")
-            else:
-                # Clean up old wallpapers
-                deleted = self.storage.cleanup_old()
-                if deleted > 0:
-                    self.logger.info(f"💾 Cleaned up {deleted} old wallpaper(s)")
-            
-            # Send notification
-            if self.config.get_bool('notifications', 'enabled', True):
-                title = f"Muralis: {provider.name.title()}"
-                message = metadata.get('copyright', metadata.get('title', 'Wallpaper updated'))
-                if len(message) > 100:
-                    message = message[:97] + "..."
-                send_notification(title, message)
-            
-            self.logger.info("🎉 Wallpaper update cycle completed successfully")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"❌ Unexpected error: {e}", exc_info=True)
-            return False
+
+        from muralis.updater import WallpaperUpdater
+        updater = WallpaperUpdater(
+            config=self.config,
+            setter=self.setter,
+            storage=self.storage,
+            download=self.download_image,
+            logger=self.logger,
+        )
+        return updater.update(provider)
     
     def setup_scheduler(self) -> bool:
         """Setup automatic wallpaper updates.
@@ -367,6 +268,6 @@ class MuralisApp:
         self.config.display()
     
     def run_daemon(self):
-        """Run as daemon with scheduler."""
+        """Run as a foreground scheduler daemon (auto-update loop)."""
         self.logger.info("🚀 Starting Muralis in daemon mode")
-        self.scheduler.start()
+        self.scheduler.start(run_callback=self.run_once)

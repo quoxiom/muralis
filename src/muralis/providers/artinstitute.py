@@ -1,6 +1,5 @@
 """Art Institute of Chicago provider - Museum artwork."""
 
-import requests
 from typing import Dict, Optional, Any
 import random
 from .base import WallpaperProvider
@@ -24,7 +23,7 @@ class ArtInstituteProvider(WallpaperProvider):
                 'has_image': True
             }
             
-            response = requests.get(self.API_URL, params=params, timeout=15)
+            response = self._get(self.API_URL, params=params, timeout=15)
             response.raise_for_status()
             data = response.json()
             
@@ -50,7 +49,7 @@ class ArtInstituteProvider(WallpaperProvider):
                 'limit': 1,
                 'fields': 'title,artist_display,date_display,place_of_origin'
             }
-            response = requests.get(self.API_URL, params=params, timeout=10)
+            response = self._get(self.API_URL, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
             

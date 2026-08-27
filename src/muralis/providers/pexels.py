@@ -1,29 +1,36 @@
 """Pexels wallpaper provider - Free stock photos."""
 
-import requests
 from typing import Dict, Optional
 from .base import WallpaperProvider
 
 class PexelsProvider(WallpaperProvider):
     """Fetches curated photos from Pexels."""
     
-    # Free API key - rate limited to 200 requests/hour
-    # Users can register their own at https://www.pexels.com/api/
-    API_KEY = "563492ad6f91700001000001d6d5e3b5e5a14e8b8b9b9b9b9b9b9b9b"  # Demo key
+    # Public demo key - rate limited to ~200 requests/hour.
+    # Users can register their own at https://www.pexels.com/api/.
+    API_KEY = "563492ad6f91700001000001d6d5e3b5e5a14e8b8b9b9b9b9b9b9b9b"
     API_URL = "https://api.pexels.com/v1/curated"
     
     @property
     def name(self) -> str:
         return "pexels"
     
+    def _get_api_key(self) -> str:
+        """Return the configured key, falling back to the public demo key."""
+        if self.config:
+            key = self.config.get_api_key('pexels')
+            if key and key.strip():
+                return key.strip()
+        return self.API_KEY
+    
     def get_daily_url(self, resolution: str = "1920x1080") -> Optional[str]:
         """Get random curated photo from Pexels."""
         try:
-            headers = {'Authorization': self.API_KEY}
+            headers = {'Authorization': self._get_api_key()}
             params = {'per_page': 30}
-            
-            response = requests.get(self.API_URL, headers=headers, 
-                                   params=params, timeout=15)
+
+            response = self._get(self.API_URL, headers=headers,
+                                params=params, timeout=15)
             response.raise_for_status()
             data = response.json()
             
@@ -51,8 +58,8 @@ class PexelsProvider(WallpaperProvider):
     def get_metadata(self) -> Dict:
         """Get Pexels photo metadata."""
         try:
-            headers = {'Authorization': self.API_KEY}
-            response = requests.get(self.API_URL, headers=headers, params={'per_page': 1})
+            headers = {'Authorization': self._get_api_key()}
+            response = self._get(self.API_URL, headers=headers, params={'per_page': 1})
             response.raise_for_status()
             data = response.json()
             

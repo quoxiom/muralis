@@ -29,14 +29,3 @@ class XfceSetter(WallpaperSetter):
             return len(props) > 0
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
-    
-    def supports_da(self) -> bool:
-        """Check if running under XFCE."""
-        try:
-            result = subprocess.run(
-                ["xfconf-query", "--version"],
-                capture_output=True
-            )
-            return result.returncode == 0
-        except FileNotFoundError:
-            return False

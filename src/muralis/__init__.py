@@ -1,4 +1,4 @@
-"""Muralis - Smart Wallpaper Manager for Qutility Suite."""
+"""Muralis - Smart Wallpaper Manager for Linux."""
 
 __version__ = "0.4.0"
 __author__ = "Qamber Haidry"

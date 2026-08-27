@@ -3,13 +3,12 @@
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
 
 from muralis.i18n import t
 
 SYSTEMD_SERVICE_TEMPLATE = '''[Unit]
 Description=Muralis - Daily Wallpaper Update
-Documentation=https://github.com/quoxiom/qutility-muralis
+Documentation=https://github.com/quoxiom/muralis
 After=network.target
 
 [Service]
@@ -27,7 +26,7 @@ WantedBy=multi-user.target
 
 SYSTEMD_TIMER_TEMPLATE = '''[Unit]
 Description=Muralis Daily Wallpaper Timer
-Documentation=https://github.com/quoxiom/qutility-muralis
+Documentation=https://github.com/quoxiom/muralis
 Requires=muralis.service
 
 [Timer]
@@ -187,20 +186,28 @@ class SchedulerManager:
         # Return current script path as fallback
         return str(Path(sys.argv[0]).absolute())
     
-    def start(self):
-        """Run blocking scheduler for non-systemd systems."""
+    def start(self, run_callback=None):
+        """Run a blocking scheduler loop for non-systemd/cron systems.
+
+        Runs a wallpaper update immediately, then every ``interval`` seconds.
+        ``run_callback`` is a zero-arg callable that performs the update (e.g.
+        ``MuralisApp.run_once``); if omitted, the loop just reports each cycle.
+        """
         import time
-        
+
         if not self.auto_update:
             print(t("cli.sched.auto_disabled"))
             return
-        
+
         interval = self.config.get_int('general', 'update_interval', 86400)
         print(t("cli.sched.auto_enabled", hours=interval // 3600))
-        
-        # This is a simple loop for systems without systemd/cron
-        # In production, you'd use proper daemonization
+
         while True:
+            if run_callback:
+                try:
+                    run_callback()
+                except Exception as e:
+                    print(t("cli.sched.cycle_error", error=e))
+            else:
+                print(t("cli.sched.cycle"))
             time.sleep(interval)
-            # Note: Would need callback to run_once
-            print(t("cli.sched.cycle"))

@@ -1,6 +1,5 @@
 """NASA Astronomy Picture of the Day provider."""
 
-import requests
 from typing import Dict, Optional, Any
 from datetime import datetime
 from .base import WallpaperProvider
@@ -22,7 +21,7 @@ class NasaProvider(WallpaperProvider):
                 'api_key': self.API_KEY,
                 'hd': True
             }
-            response = requests.get(self.API_URL, params=params, timeout=10)
+            response = self._get(self.API_URL, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
             
@@ -43,7 +42,7 @@ class NasaProvider(WallpaperProvider):
         """Get NASA APOD metadata."""
         try:
             params = {'api_key': self.API_KEY}
-            response = requests.get(self.API_URL, params=params, timeout=10)
+            response = self._get(self.API_URL, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
             

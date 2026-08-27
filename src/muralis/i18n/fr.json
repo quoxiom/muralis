@@ -1,13 +1,14 @@
 {
   "cli": {
     "description": "Muralis - Gestionnaire de fonds d'écran pour Linux",
-    "epilog": "Fait partie de Qutility Suite par Quoxiom",
+    "epilog": "Muralis - un petit utilitaire de fonds d'écran par Quoxiom",
     "help": {
       "gui": "Lancer l'interface graphique (identique à 'muralis-gui')",
       "config": "Chemin du fichier de configuration (défaut : ~/.config/muralis/config.ini)",
       "provider": "Forcer le fournisseur pour cette exécution",
       "once": "Exécuter un cycle de mise à jour puis quitter",
       "set_daily": "Installer la minuterie systemd pour les mises à jour quotidiennes",
+      "daemon": "Exécuter le démon de mise à jour automatique au premier plan",
       "list_providers": "Lister tous les fournisseurs disponibles",
       "show_config": "Afficher la configuration actuelle",
       "verbose": "Activer la sortie détaillée pour le débogage",
@@ -82,7 +83,7 @@
     },
     "banner": {
       "title": "Muralis v{version} - Gestionnaire de fonds d'écran",
-      "part_of": "Fait partie de Qutility Suite par Quoxiom",
+      "part_of": "Muralis - un petit utilitaire de fonds d'écran par Quoxiom",
       "quick_start": "📌 DÉMARRAGE RAPIDE",
       "once_line": "  muralis --once                    Obtenir le fond d'écran du jour",
       "once_provider_line": "  muralis --once --provider nasa    Utiliser un fournisseur précis",
@@ -109,7 +110,7 @@
       "tips_verbose": "  • Utilisez --verbose pour la sortie de débogage",
       "docs": "📚 DOCUMENTATION COMPLÈTE",
       "docs_help_line": "  muralis --help                    Afficher cette aide",
-      "docs_url": "  https://github.com/quoxiom/qutility-muralis"
+      "docs_url": "  https://github.com/quoxiom/muralis"
     },
     "sched": {
       "systemd_ok": "✓ Minuterie quotidienne Muralis installée avec succès (systemd)",
@@ -118,7 +119,8 @@
       "cron_fail": "Impossible de configurer la tâche cron : {error}",
       "auto_disabled": "Mise à jour automatique désactivée dans la configuration",
       "auto_enabled": "Mise à jour automatique activée, toutes les {hours} heures",
-      "cycle": "Le cycle de mise à jour s'exécuterait ici"
+      "cycle": "Le cycle de mise à jour s'exécuterait ici",
+      "cycle_error": "Échec de la mise à jour programmée : {error}"
     },
     "config": {
       "created": "✓ Configuration par défaut créée dans {path}",
@@ -154,7 +156,7 @@
       "history": "Historique",
       "settings": "Paramètres",
       "about": "À propos",
-      "footer": "v{version} · Qutility Suite",
+      "footer": "v{version} · Muralis",
       "collapse": "Réduire le panneau",
       "expand": "Déplier le panneau"
     },
@@ -260,14 +262,14 @@
       }
     },
     "about": {
-      "desc": "Gestionnaire de fonds d'écran pour Linux.\nFait partie de Qutility Suite par Quoxiom.",
+      "desc": "Gestionnaire de fonds d'écran pour Linux.\nUn petit utilitaire de fonds d'écran par Quoxiom.",
       "version": "Version {version}",
-      "github": "github.com/quoxiom/qutility-muralis",
+      "github": "github.com/quoxiom/muralis",
       "docs": "Documentation"
     },
     "dialog": {
       "about_title": "À propos de Muralis",
-      "about_html": "<h2>Muralis</h2><p>Gestionnaire de fonds d'écran pour Linux</p><p>Version {version}</p><p>Fait partie de Qutility Suite par Quoxiom</p><p>© 2026 Quoxiom (Qamber Haidry)</p><p><a href='https://github.com/quoxiom/qutility-muralis'>GitHub</a></p>",
+      "about_html": "<h2>Muralis</h2><p>Gestionnaire de fonds d'écran pour Linux</p><p>Version {version}</p><p>Un petit utilitaire de fonds d'écran par Quoxiom</p><p>© 2026 Quoxiom (Qamber Haidry)</p><p><a href='https://github.com/quoxiom/muralis'>GitHub</a></p>",
       "docs_title": "Documentation",
       "docs_text": "Veuillez visiter :\n{url}",
       "error_title": "Erreur",

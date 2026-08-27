@@ -1,9 +1,8 @@
 """Storage management for Muralis wallpapers."""
 
-import os
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List
 
 class StorageManager:
     """Manages wallpaper storage and cleanup."""

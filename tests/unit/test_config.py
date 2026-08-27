@@ -62,19 +62,6 @@ class TestConfigManager:
         self.config.set('image', 'resolution', 'invalid')
         self.config.validate() # Should not raise exception
 
-    def test_get_resolution(self):
-        """Test resolution parsing."""
-        width, height = self.config.get_resolution('image', 'resolution')
-        assert width == 3840
-        assert height == 2160
-
-    def test_get_time(self):
-        """Test time parsing."""
-        time_obj = self.config.get_time('scheduling', 'update_time')
-        assert time_obj is not None
-        assert time_obj.hour == 9
-        assert time_obj.minute == 0
-
     def test_get_download_dir(self):
         """Test getting download directory."""
         download_dir = self.config.get_download_dir()

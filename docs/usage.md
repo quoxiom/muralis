@@ -1,360 +1,121 @@
-# Usage Guide for Muralis
+# Usage Guide
 
-## Table of Contents
+## Table of contents
 
-1. Quick Start
-2. Command Line Interface
+1. Quick start
+2. Command-line interface
 3. Configuration
 4. Providers
-5. Automatic Updates
-7. Image Effects
-8. Storage Management
+5. Automatic updates
+6. Image effects
+7. Storage management
+8. Themes & languages
 9. Troubleshooting
 10. Examples
 
-## Quick Start
+---
+
+## Quick start
+
 ```bash
-# Get today's wallpaper
+# Download and set today's wallpaper (default provider from config)
 muralis --once
 
-# Use NASA provider
+# Use a specific provider
 muralis --once --provider nasa
 
-# Setup daily automatic updates
+# Set up automatic daily updates
 muralis --set-daily
 
-# View current configuration
+# Show the current configuration
 muralis --show-config
 
 # List all providers
 muralis --list-providers
 
-# Check API key status
-```
-
-```bash
-# Get today's wallpaper mmediately
-muralis --once
-
-# Use NASA provider
-muralis --once --provider nasa
-
-# Setup daily automatic updates
-muralis --set-daily
-
-# See all available options
+# See all options
 muralis --help
 ```
 
-## Command Line Interface
+## Command-line interface
 
-### Running Muralis
-` muralis --[option]` 
+Run `muralis --help` to see the full list. Options can be combined.
 
-Please check the command line options below. Some options can be combined. e.g The following command will run one update cycle using the 'Bing' provider.
+```bash
+# Run one update cycle using the Bing provider
+muralis --once --provider bing
+```
 
-` muralis --run-once --provider bing` 
-
-
-### Command Line Options
+### Options
 
 | Option | Description |
 |--------|------------|
-| `-c`, `--config` | Custom configuration file |
-| c-p`, `--provider` | Override wallpaper source |
+| `-gui`, `--gui` | Launch the graphical interface |
+| `-c`, `--config PATH` | Use a custom configuration file |
+| `-p`, `--provider NAME` | Override the wallpaper source |
 | `--once` | Run one update cycle |
-| `--set-daily` | Setup systemd timer |
-| `--list-providers` | Show all available sources |
-| `--show-config` | Display current configuration |
-| `--get` | Get a configuration value |
-| `--set` | Set a configuration value |
-| `--reset-config` | Reset to factory defaults |
-| `--export-config` | Export configuration to JSON |
-| `--import-config` | Import configuration from JSON |
-| `--check-keys` | Check API key status |
-| `--set-key` | Set API key for a provider |
-| `--remove-key` | Remove API key |
-| `--get-key-instructions` | Show API key setup help |
+| `--set-daily` | Setup the systemd timer (daily updates) |
+| `--list-providers` | Show available providers |
+| `--show-config` | Display the current configuration |
+| `--get SECTION.KEY` | Get a configuration value |
+| `--set SECTION.KEY VALUE` | Set a configuration value |
+| `--reset-config` | Reset to defaults |
+| `--export-config FILE` | Export configuration to JSON |
+| `--import-config FILE` | Import configuration from JSON |
+| `--check-keys` | Show API key status |
+| `--set-key PROVIDER KEY` | Set an API key |
+| `--remove-key PROVIDER` | Remove an API key |
+| `--get-key-instructions PROVIDER` | Show setup help for a provider |
 | `--verbose` | Enable debug output |
-
-### Advanced Examples
-
-```bash
-# Run with custom config
-provider = bing
-save_downloads = false
-
-# Use different resolution
-resolution = 2560x1440
-
-# Enable effects
-apply_effects = true
-effect_type = blur
-```
+| `-v`, `--version` | Show the version |
 
 ## Configuration
 
-### Configuration File Location
+### Location
+
+Settings are stored as **JSON** at `~/.config/muralis/config.json`. A legacy
+`config.ini` is migrated automatically on first launch and then removed. The
+application re-reads the file on each start, so external edits are picked up.
+
+All settings can also be changed from the CLI:
 
 ```bash
-~/.config/muralis/config.ini`
+muralis --get general.provider
+muralis --set scheduling.update_time 14:30
+muralis --export-config ~/muralis-backup.json
 ```
 
-### Complete Configuration Example
-
-```ini
-# Muralis Configuration File
-# Part of Qutility Suite by Quoxiom
-# Location: ~/.config/muralis/config.ini
-
-[general]
-# Available providers: bing, nasa, unsplash, pexels, wikimedia, artinstitute, wallhaven
-provider = bing
-
-# Automatically update wallpaper on schedule
-auto_update = true
-
-# Update interval in seconds (86400 = 1 day)
-update_interval = 86400
-
-# Randomize provider selection each day
-randomize_provider = false
-
-# Fallback provider if primary fails
-fallback_provider = bing
-
-# Timezone for scheduling
-timezone = UTC
-
-# Offline mode (don't download new wallpapers)
-offline_mode = false
-
-# Network timeout in seconds
-network_timeout = 30
-
-# Number of retry attempts for failed downloads
-retry_attempts = 3
-
-[image]
-# Desired resolution (1920x1080, 2560x1440, 3840x2160, 4096x2160, 7680x4320)
-resolution = 3840x2160
-
-# Apply image effects
-apply_effects = false
-
-# Effect type: none, blur, darken, grayscale, vibrant, vignette
-effect_type = none
-
-# JPEG quality (1-100)
-jpeg_quality = 90
-
-# Image fitting: zoom, fill, fit, stretch, center
-fit_mode = zoom
-
-# Upscale lower resolution images
-upscale_image = false
-
-# Upscale factor (2, 4)
-upscale_factor = 2
-
-# Maintain aspect ratio when scaling
-maintain_aspect_ratio = true
-
-# Image format: jpg, png, webp
-image_format = jpg
-
-# Color profile: auto, srgb, adobe_rgb
-color_profile = auto
-
-# Add watermark to wallpaper
-watermark = false
-
-# Watermark position: top-left, top-right, bottom-left, bottom-right, center
-watermark_position = bottom-right
-
-# Watermark text
-watermark_text = Muralis
-
-[storage]
-# Save downloaded wallpapers
-save_downloads = true
-
-# Directory to store wallpapers
-download_dir = ~/Pictures/Muralis
-
-# Maximum number of files to keep (0 = unlimited)
-max_files = 100
-
-# Maximum age in days (0 = unlimited)
-max_days = 30
-
-# Keep favorited wallpapers forever
-keep_favorites = false
-
-# Organize by: date, provider, resolution, none
-organize_by = date
-
-# Create subdirectories by year/month
-create_subdirs = true
-
-# Auto-tag wallpapers with source/category
-auto_tag = true
-
-# Sync to cloud storage
-sync_to_cloud = false
-
-# Cloud sync folder path (for rsync, rclone, etc.)
-sync_path = 
-
-# Compression level for PNG images (0-9)
-compression_level = 6
-
-[scheduling]
-# Update time (24-hour format)
-update_time = 09:00
-
-# Random delay in minutes to spread out updates
-random_delay_minutes = 30
-
-# Update when system boots
-update_on_boot = false
-
-# Update when waking from sleep
-update_on_wake = true
-
-# Minimum interval between updates (hours)
-minimum_interval_hours = 6
-
-# Skip update when on battery power
-skip_on_battery = false
-
-# Only update when on WiFi (not cellular)
-only_on_wifi = true
-
-[networking]
-# Enable proxy support
-proxy_enabled = false
-
-# Proxy URL (http://proxy.example.com:8080)
-proxy_url = 
-
-# Proxy username (if authentication required)
-proxy_username = 
-
-# Proxy password
-proxy_password = 
-
-# Custom user agent string
-user_agent = Muralis/1.0 (Qutility Suite)
-
-# Verify SSL certificates
-verify_ssl = true
-
-# Download timeout in seconds
-download_timeout = 30
-
-# Maximum number of redirects to follow
-max_redirects = 5
-
-[wallpaper_effects]
-# Change effects based on time of day
-daily_theme = false
-
-# Effect for morning (6am-12pm): bright, vibrant, none
-morning_effect = bright
-
-# Effect for afternoon (12pm-5pm): vibrant, none
-afternoon_effect = vibrant
-
-# Effect for evening (5pm-9pm): warm, darken, none
-evening_effect = warm
-
-# Effect for night (9pm-6am): dark, none
-night_effect = dark
-
-# Auto-adjust brightness based on ambient light (requires sensor)
-auto_adjust_brightness = false
-
-# Auto-adjust contrast based on content
-auto_adjust_contrast = false
-
-# Extract dominant color for system theme
-dominant_color = false
-
-[logging]
-# Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-log_level = INFO
-
-# Log file location
-log_file = ~/.local/share/muralis/muralis.log
-
-# Keep logs for this many days
-log_rotation_days = 30
-
-# Enable debug mode (very verbose)
-debug_mode = false
-
-# Log HTTP traffic (may contain sensitive data)
-log_http_traffic = false
-
-[advanced]
-# Config file version (auto-managed)
-config_version = 2
-
-# Enable experimental features
-experimental_features = false
-
-# Enable caching
-cache_enabled = true
-
-# Cache size in MB
-cache_size_mb = 500
-
-# Number of parallel downloads
-parallel_downloads = 1
-
-# Maximum simultaneous connections
-max_connections = 5
-
-[api_keys]
-# Unsplash - REQUIRED for Unsplash provider
-# Get your free key at: https://unsplash.com/developers
-# Free tier: 50 requests/hour (plenty for daily use)
-unsplash_key = 
-
-# Pexels - OPTIONAL (demo key works, but limited to 200/hour)
-# Get your own key at: https://www.pexels.com/api/
-# Free tier: 5,000 requests/hour
-pexels_key = 563492ad6f91700001000001d6d5e3b5e5a14e8b8b9b9b9b9b9b9b
-
-# Flickr - OPTIONAL (coming soon)
-flickr_key = 
-flickr_secret = 
-```
-
-### Configuration Examples
-
-#### Change Provider
-
-```ini
-[general]
-provider = nasa
-```
-
-Or via CLI:
+### Sections
+
+| Section | Purpose |
+|---------|---------|
+| `general` | Provider, auto-update, randomize, fallback, offline mode |
+| `image` | Resolution, effects, format, fit mode, upscaling, watermark |
+| `storage` | Save/keep wallpapers, cleanup limits, organize-by |
+| `scheduling` | Update time, battery/WiFi guards, minimum interval |
+| `networking` | Proxy, user agent, SSL verification, timeouts |
+| `wallpaper_effects` | Time-of-day themed effects (not yet wired in the pipeline) |
+| `logging` | Log level, location, rotation |
+| `advanced` | Caching, parallel downloads |
+| `api_keys` | Provider API keys (masked in `--show-config`) |
+| `gui` | Active theme (managed by the GUI) |
+
+#### Examples
+
+Change the provider:
 
 ```bash
 muralis --set general.provider nasa
 ```
 
-#### Enable 4K/8K Wallpapers
+Enable 4K wallpapers (Bing):
 
 ```bash
 muralis --set image.resolution 3840x2160
 muralis --once --provider bing
 ```
 
-#### Enable Image Effects
+Enable an image effect:
 
 ```bash
 muralis --set image.apply_effects true
@@ -362,120 +123,47 @@ muralis --set image.effect_type blur
 muralis --once
 ```
 
-#### Setup Proxy
+Proxy behind a corporate firewall:
 
 ```bash
 muralis --set networking.proxy_enabled true
-muralis --set networking.proxy_url http://proxy:1234@example.com:8080
-muralis --once
-```
-
-#### Schedule Updates at Custom Time
-
-```bash
-muralis --set scheduling.update_time 14:30
-muralis --set scheduling.random_delay_minutes 45
-```
-
-#### Battery-Aware Updates (For Laptops)
-
-```bash
-# Skip updates when on battery power
-muralis --set scheduling.skip_on_battery true
-
-# Only update on WiFi
-muralis --set scheduling.only_on_wifi true
-```
-
-#### Export and Import Configuration
-
-```bash
-# Backup config
-Muralis --export-config ~/muralis_backup.json
-
-# Restore config
-muralis --import-config ~/muralis_backup.json
-```
-
-### Advanced Usage Examples
-
-#### Daily NaSA Wallpaper with Blur
-
-```ini
-[general]
-provider = nasa
-
-$image]
-apply_effects = true
-effect_type = blur
-```
-
-#### Random Provider Each Day
-
-```inj
-[general]
-randomize_provider = true
-fallback_provider = bing
-```
-
-#### Save Only 7 Days of Wallpapers
-
-```ini
-[storage]
-save_downloads = true
-max_days = 7
-max_files = 0
-```
-
-#### WiFi-Only Mode for Notebooks
-
-```inj
-[scheduling]
-skip_on_battery = true
-only_on_wifi = true
-```
-
-#### 4K Downloads with Caching
-
-```ini
-[advanced]
-cache_enabled = true
-cache_size_mb = 1000
+muralis --set networking.proxy_url http://proxy.company.com:8080
 ```
 
 ## Providers
 
-### Providers
+| Provider        | API key    | Notes                                             |
+|-----------------|------------|---------------------------------------------------|
+| `bing`          | No         | Daily Bing homepage, up to 4K/8K                   |
+| `nasa`          | Demo/own   | Astronomy Picture of the Day                       |
+| `pexels`        | Optional    | Curated stock photos (demo key bundled)            |
+| `wikimedia`     | No         | Public-domain Wikimedia Commons artwork            |
+| `artinstitute`  | No         | Art Institute of Chicago                           |
+| `wallhaven`     | No         | wallhaven.cc (SFW filter)                          |
+| `unsplash`      | **Required**| Curated photos                                    |
 
-| Provider | Description | API Key | 4K Support |
-|---------|-----------|--------|---------|
-| bing    | Bing Daily Images | No needed | 🚠 Yes |
-| nasa    | NASA AP OD | Demo key | 😠 Yes |
-| pexels   | Pexels Stock Photos | Demo key | 🚀 ' |
-| wikimedia | Wikimedia Commons | No needed | 🚀 Yes |
-| artinstitute | Art Institute of Chicago | No needed | 🚀 Yes |
-| wallhaven | Wallhaven cc | No needed | 🚠 Yes |
-| unsplash | Unsplash Photos | Required | 🚀 Yes |
+### API key management
 
-### API Key Management
+See [Provider setup](installation.md#provider-setup) for per-provider
+instructions and which providers work out of the box.
 
 ```bash
 # Check status of all API keys
 muralis --check-keys
 
-# Set API key for Unsplash
+# Set an API key
 muralis --set-key unsplash YOUR_32_CHAR_KEY
 
-# Remove API key
+# Remove an API key
 muralis --remove-key unsplash
 
 # Get setup instructions
 muralis --get-key-instructions unsplash
 ```
 
-## Automatic Updates
+## Automatic updates
 
-### Systemd Timer (Recommended)
+### Systemd timer (recommended)
 
 ```bash
 # Setup
@@ -489,165 +177,165 @@ journalctl --user -u muralis.service -f
 
 # Disable
 systemctl --user disable --now muralis.timer
-
 ```
 
-### Cron Job (Fallback)
+### Cron fallback
+
+If systemd user units aren't available, Muralis falls back to a cron job:
 
 ```bash
-# Edit crontab
 crontab -e
-
-# Add line (daily at 9:45 AM)
+# Add a line: daily at 09:45
 45 9 * * * muralis --once
 ```
 
-## Image Effects
-
-Enable effects in configuration:
-
-```ini
-[image]
-apply_effects = true
-effect_type = blur  # blur, darken, grayscale, vibrant, vignette
-```
-
-### Available Effects
-
-| Effect | Description |
-|-------|-----------|
-| blur | Soft focus effect (radius=5) |
- | darken | Darken image (brightness=0.6) |
- | grayscale | Convert to black and white |
- | vibrant | Enchance colors (color=1.3, contrast=1.1) |
- | vignette | Fade to dark at edges |
-
-## Storage Management
-
-### Check Storage Usage
-
-```python
-from muralis.storage import StorageManager
-from muralis.config import ConfigManager
-
-config = ConfigManager("~/.config/muralis/config.ini")
-storage = StorageManager(config)
-print(storage.get_storage_usage())
-```
-
-### Cleanup Old Wallpapers
+### Battery & network guards
 
 ```bash
-# Manual cleanup: remove files older than 30 days
-find ~/Pictures/Muralis -name "*.mrailis.*" -mtime +30 -exec rm -{} \;
-
-# Or use the built-in cleanup
-# Set max_days = 30 in configuration
+muralis --set scheduling.skip_on_battery true
+muralis --set scheduling.only_on_wifi true
 ```
+
+## Image effects
+
+Enable them in the config, or from the GUI (**Settings → Image → Effects**):
+
+```bash
+muralis --set image.apply_effects true
+muralis --set image.effect_type blur
+```
+
+| Effect | Description |
+|--------|-------------|
+| `blur` | Soft focus (Gaussian radius 5) |
+| `darken` | Reduce brightness |
+| `grayscale` | Black and white |
+| `vibrant` | Boost color and contrast |
+| `vignette` | Fade the edges to black |
+
+## Storage management
+
+Wallpapers are saved to `~/Pictures/Muralis` (configurable via
+`storage.download_dir`). Retention is governed by:
+
+- `storage.max_files` — keep at most N files (`0` = unlimited)
+- `storage.max_days` — delete files older than N days (`0` = unlimited)
+
+```bash
+muralis --set storage.max_files 50
+muralis --set storage.max_days 14
+```
+
+Cleanup happens automatically after every successful update. Manual check:
+
+```bash
+ls -la ~/Pictures/Muralis/
+```
+
+## Themes & languages
+
+### Themes
+
+Themes are JSON palettes in `~/.config/muralis/themes/`. Built-in themes
+(`reasonix`, `docker-dark`, `light`) are copied there on first run and are
+user-editable. Change the active theme in **Settings → Appearance → Theme**.
+
+### Languages
+
+The language is auto-detected from the locale (`LANGUAGE`, `LC_ALL`,
+`LC_MESSAGES`, `LANG`), falling back to English. Shipped translations are in
+the package; to override or add a language, drop a partial file at
+`~/.config/muralis/i18n/<lang>.json` (missing keys fall back to English).
 
 ## Troubleshooting
 
-### Wallpaper Not Changing
+### Wallpaper not changing
 
 ```bash
-# Check download location
+# Check the download location
 ls -la ~/Pictures/Muralis/
 
 # Run in debug mode
 muralis --once --verbose
 
-# Test with feh
-feh --bg-scale ~/Pictures/Muralis/muralis_*.jpg
-	# Check DE detection
+# Check desktop environment detection
 echo $XDG_CURRENT_DESKTOP
+
+# Manually set the wallpaper
+feh --bg-scale ~/Pictures/Muralis/muralis_*.jpg
 ```
 
-### Provider API Errors
+### Provider API errors
 
 ```bash
-# Test Bing API
+# Test the Bing endpoint
 curl "https://www.bing.com/HPImageArchive.aspx?format=js&n=1"
 
-# Test NASA APID
+# Test the NASA endpoint
 curl "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY"
-
 ```
 
-### Systemd Timer Issues
+### Systemd timer issues
 
 ```bash
-# Check timer configuration
+# Inspect the generated units
 ls ~/.config/systemd/user/muralis.*
 
-# Reload services
+# Reload service definitions
 systemctl --user daemon-reload
 
-# Execute manually
+# Run the update job manually
 systemctl --user start muralis.service
+```
 
+### Invalid API key
+
+```bash
+muralis --remove-key unsplash
+muralis --set-key unsplash YOUR_NEW_KEY   # copy the full key, no leading spaces
 ```
 
 ## Examples
 
-### Example 1: Daily NASA Wallpaper with Blur Effect
+### Daily NASA wallpaper with a blur effect
 
-```inj
-[general]
-provider = nasa
-auto_update = true
-
-[image]
-apply_effects = true
-effect_type = blur
+```bash
+muralis --set general.provider nasa
+muralis --set image.apply_effects true
+muralis --set image.effect_type blur
+muralis --set-daily
 ```
 
-### Example 2: Save Only 7 Days of Wallpapers
+### Keep only the last 7 days of wallpapers
 
-```inj
-[storage]
-save_downloads = true
-max_days = 7
-max_files = 0
+```bash
+muralis --set storage.save_downloads true
+muralis --set storage.max_days 7
+muralis --set storage.max_files 0
 ```
 
-### Example 3: Random Provider Each Day
+### Random provider each day
 
-``sh
-# Create script
-cat > ~/bin/muralis-random.sh << EOF
+```bash
+muralis --set general.randomize_provider true
+muralis --set general.fallback_provider bing
+```
+
+### Random provider via a shell script
+
+```bash
+cat > ~/bin/muralis-random.sh <<'EOF'
 #!/bin/bash
-PROVIDERS=(bing nasa unsplash wallhaven)
-RANDOM_PROVIDER=${PROVIDERS[$RANDOM%${#PROVIDERS[@]}]}
-muralis --once --provider $RANDOM_PROVIDER
+PROVIDERS=(bing nasa wallhaven pexels)
+RANDOM_PROVIDER=${PROVIDERS[$RANDOM % ${#PROVIDERS[@]}]}
+muralis --once --provider "$RANDOM_PROVIDER"
 EOF
 chmod +x ~/bin/muralis-random.sh
 
-# Use in cron
+# Use in cron at 09:00
 0 9 * * * /home/user/bin/muralis-random.sh
 ```
 
-### Example 4: Integration with Polybar
-
-```ini
-[ module/muralis ]
-type = custom/script
-exec = ~/bin/muralis-status.sh
-interval = 3600
-```
-
-```sh
-# ~/bin/muralis-status.sh
-#!/bin/bash
-COUNT=$(ls -1 ~/Pictures/Muralis/muralis_*.jpg 2>/dev/null | wc -l)
-echo "😸  Count: $COUNT"
-```
-
-## Tips and Tricks
-
-1. Use `muralis --once --verbose` to debug issues
-2. Check `https://status.quoxiom.com/ for provider status updates
-3. Join the Qutility community for help and updates
-
 ---
 
-**Muralis** - Part of Qutility Suite by Quoxiom
+**Muralis** — a small wallpaper utility by Quoxiom.

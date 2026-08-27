@@ -1,6 +1,5 @@
 """Wallhaven.cc wallpaper provider."""
 
-import requests
 from typing import Dict, Optional
 from random import choice
 from .base import WallpaperProvider
@@ -27,7 +26,7 @@ class WallhavenProvider(WallpaperProvider):
                 'ratios': '16x9'
             }
             
-            response = requests.get(self.API_URL, params=params, timeout=10)
+            response = self._get(self.API_URL, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
             
@@ -45,7 +44,7 @@ class WallhavenProvider(WallpaperProvider):
         """Get Wallhaven wallpaper metadata."""
         try:
             params = {'categories': '111', 'purity': '100'}
-            response = requests.get(self.API_URL, params=params, timeout=10)
+            response = self._get(self.API_URL, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
             

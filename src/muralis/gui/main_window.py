@@ -273,13 +273,13 @@ class MainWindow(QMainWindow):
 
         card_layout.addSpacing(8)
 
-        github = QLabel(f'<a href="https://github.com/quoxiom/qutility-muralis">'
+        github = QLabel(f'<a href="https://github.com/quoxiom/muralis">'
                         f"{t('gui.about.github')}</a>")
         github.setObjectName("aboutLink")
         github.setOpenExternalLinks(True)
         card_layout.addWidget(github)
 
-        docs = QLabel(f'<a href="https://github.com/quoxiom/qutility-muralis/wiki">'
+        docs = QLabel(f'<a href="https://github.com/quoxiom/muralis/wiki">'
                       f"{t('gui.about.docs')}</a>")
         docs.setObjectName("aboutLink")
         docs.setOpenExternalLinks(True)

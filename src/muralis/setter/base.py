@@ -16,8 +16,3 @@ class WallpaperSetter(ABC):
             bool: True if successful, False otherwise
         """
         pass
-    
-    @abstractmethod
-    def supports_da(self) -> bool:
-        """Check if desktop environment is detected."""
-        pass

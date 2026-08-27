@@ -1,6 +1,0 @@
-# Core dependencies
-requests>=2.25.0
-Pillow>=8.0.0
-
-# GUI support (optional)
-PyGObject>=3.42.0
