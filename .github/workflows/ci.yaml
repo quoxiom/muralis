@@ -140,6 +140,9 @@ jobs:
   security:
     name: Security Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
     - name: Checkout code
@@ -154,10 +157,11 @@ jobs:
         output: 'trivy-results.sarif'
         severity: 'HIGH,CRITICAL'
 
-    - name: Upload Trivy results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
+    - name: Upload Trivy results to GitHub Security tab (non-gating)
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: 'trivy-results.sarif'
+      continue-on-error: true
 
     - name: Check dependencies for vulnerabilities
       run: |
