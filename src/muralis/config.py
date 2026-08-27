@@ -16,6 +16,7 @@ from muralis.providers import ALL_PROVIDERS
 
 class ConfigValidationError(Exception):
     """Raised when configuration validation fails."""
+
     pass
 
 
@@ -23,7 +24,7 @@ class ConfigManager:
     """Configuration manager with per-file singleton pattern (JSON-backed)."""
 
     # Class-level cache: path -> instance
-    _instances: Dict[str, 'ConfigManager'] = {}
+    _instances: Dict[str, "ConfigManager"] = {}
 
     def __new__(cls, config_path: str):
         """Create or return cached instance for the given config path."""
@@ -40,7 +41,7 @@ class ConfigManager:
         The instance is cached per-path, but the config is re-read from disk
         on every construction so external edits are picked up without restart.
         """
-        if not hasattr(self, 'config_path'):
+        if not hasattr(self, "config_path"):
             self.config_path = Path(config_path).expanduser().absolute()
             self.config: Dict[str, Dict[str, str]] = {}
             self.load()
@@ -79,8 +80,8 @@ class ConfigManager:
             return
         # Try a legacy INI at a sibling path (old default config.ini).
         legacy = self.config_path
-        if self.config_path.suffix.lower() == '.json':
-            legacy = self.config_path.with_suffix('.ini')
+        if self.config_path.suffix.lower() == ".json":
+            legacy = self.config_path.with_suffix(".ini")
         if legacy.exists() and legacy != self.config_path:
             self._migrate_from_ini(legacy)
             self._migrate_config()
@@ -91,24 +92,28 @@ class ConfigManager:
     def _read_json(self, path: Path) -> Optional[Dict[str, Dict[str, str]]]:
         """Read a JSON config dict, or None if the file isn't JSON."""
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, dict):
-                return {str(s): {str(k): str(v) for k, v in opts.items()}
-                        if isinstance(opts, dict) else {}
-                        for s, opts in data.items()}
+                return {
+                    str(s): (
+                        {str(k): str(v) for k, v in opts.items()} if isinstance(opts, dict) else {}
+                    )
+                    for s, opts in data.items()
+                }
         except (OSError, json.JSONDecodeError, ValueError):
             return None
         return None
 
     def _write_json(self):
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.config_path, 'w', encoding='utf-8') as f:
+        with open(self.config_path, "w", encoding="utf-8") as f:
             json.dump(self.config, f, indent=2, ensure_ascii=False)
 
     def _migrate_from_ini(self, ini_path: Path):
         """Migrate a legacy INI file into the JSON config dict."""
         import configparser
+
         parser = configparser.ConfigParser()
         parser.read(ini_path)
         self.config = {}
@@ -116,8 +121,11 @@ class ConfigManager:
             self.config[section] = dict(parser.items(section))
         # Only migrate config used by Muralis (skip foreign sections).
         allowed = set(self.DEFAULT_CONFIG.keys())
-        self.config = {s: o for s, o in self.config.items()
-                       if s in allowed or s == 'api_keys' or s == 'general'}
+        self.config = {
+            s: o
+            for s, o in self.config.items()
+            if s in allowed or s == "api_keys" or s == "general"
+        }
         # Keep api_keys from legacy even though it's not a DEFAULT section key.
         for section, opts in self.DEFAULT_CONFIG.items():
             self.config.setdefault(section, {})
@@ -163,7 +171,7 @@ class ConfigManager:
     def validate(self):
         errors = []
         for key, rules in self.VALIDATION_RULES.items():
-            section, option = key.split('.')
+            section, option = key.split(".")
             value = self.get_str(section, option, "")
             if rules["type"] == "int":
                 try:
@@ -202,7 +210,7 @@ class ConfigManager:
 
     def get_bool(self, section: str, key: str, fallback: bool = False) -> bool:
         val = self.get_str(section, key, str(fallback).lower())
-        return val.lower() in ['true', 'yes', '1', 'on']
+        return val.lower() in ["true", "yes", "1", "on"]
 
     def get_int(self, section: str, key: str, fallback: int = 0) -> int:
         val = self.get_str(section, key, str(fallback))
@@ -265,34 +273,37 @@ class ConfigManager:
         return {section: dict(options) for section, options in self.config.items()}
 
     def get_download_dir(self) -> Path:
-        return Path(self.get_str('storage', 'download_dir', '~/Pictures/Muralis')).expanduser()
+        return Path(self.get_str("storage", "download_dir", "~/Pictures/Muralis")).expanduser()
 
     def get_log_file(self) -> Path:
-        return Path(self.get_str('logging', 'log_file', '~/.local/share/muralis/muralis.log')).expanduser()
+        return Path(
+            self.get_str("logging", "log_file", "~/.local/share/muralis/muralis.log")
+        ).expanduser()
 
     def get_proxy_settings(self) -> Optional[Dict]:
-        if not self.get_bool('networking', 'proxy_enabled', False):
+        if not self.get_bool("networking", "proxy_enabled", False):
             return None
-        proxy_url = self.get_str('networking', 'proxy_url', '')
+        proxy_url = self.get_str("networking", "proxy_url", "")
         if not proxy_url:
             return None
-        username = self.get_str('networking', 'proxy_username', '')
-        password = self.get_str('networking', 'proxy_password', '')
+        username = self.get_str("networking", "proxy_username", "")
+        password = self.get_str("networking", "proxy_password", "")
         if username and password:
             from urllib.parse import urlparse
+
             parsed = urlparse(proxy_url)
             proxy_url = f"{parsed.scheme}://{username}:{password}@{parsed.netloc}{parsed.path}"
-        return {'http': proxy_url, 'https': proxy_url}
+        return {"http": proxy_url, "https": proxy_url}
 
     def get_update_time(self) -> str:
-        return self.get_str('scheduling', 'update_time', '09:00')
+        return self.get_str("scheduling", "update_time", "09:00")
 
     def get_api_key(self, provider: str) -> Optional[str]:
-        key = self.get_optional('api_keys', f"{provider}_key")
+        key = self.get_optional("api_keys", f"{provider}_key")
         return key if key else None
 
     def set_api_key(self, provider: str, key: str):
-        self.set('api_keys', f"{provider}_key", key)
+        self.set("api_keys", f"{provider}_key", key)
 
     # ------------------------------------------------------------------
     # Display / import / export
@@ -307,13 +318,13 @@ class ConfigManager:
             print(f"\n[{section}]")
             for key, value in options.items():
                 value = str(value)
-                if 'key' in key or 'password' in key or 'secret' in key:
+                if "key" in key or "password" in key or "secret" in key:
                     if len(value) > 8:
                         value = value[:4] + "..." + value[-4:]
                     elif value:
                         value = "***"
-                if value.lower() in ['true', 'false']:
-                    value = "✓" if value.lower() == 'true' else "✗"
+                if value.lower() in ["true", "false"]:
+                    value = "✓" if value.lower() == "true" else "✗"
                 print(f"  {key:25} = {value}")
         print("\n" + "=" * 60)
 
@@ -321,13 +332,13 @@ class ConfigManager:
         data = self.get_all()
         export_path = Path(filepath).expanduser()
         export_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(export_path, 'w') as f:
+        with open(export_path, "w") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         print(t("cli.ok.exported", path=export_path))
 
     def import_json(self, filepath: str):
         import_path = Path(filepath).expanduser()
-        with open(import_path, 'r') as f:
+        with open(import_path, "r") as f:
             data = json.load(f)
         for section, options in data.items():
             opts = self.config.setdefault(str(section), {})
@@ -341,11 +352,13 @@ class ConfigManager:
     # ------------------------------------------------------------------
     def _validate_resolution(self, resolution: str) -> bool:
         import re
-        return bool(re.match(r'^\d{3,4}x\d{3,4}$', resolution))
+
+        return bool(re.match(r"^\d{3,4}x\d{3,4}$", resolution))
 
     def _validate_time(self, time_str: str) -> bool:
         import re
-        return bool(re.match(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', time_str))
+
+        return bool(re.match(r"^([0-1][0-9]|2[0-3]):[0-5][0-9]$", time_str))
 
     # ------------------------------------------------------------------
     # Defaults & validation rules
@@ -360,7 +373,7 @@ class ConfigManager:
             "timezone": "UTC",
             "offline_mode": "false",
             "network_timeout": "30",
-            "retry_attempts": "3"
+            "retry_attempts": "3",
         },
         "image": {
             "resolution": "3840x2160",
@@ -375,7 +388,7 @@ class ConfigManager:
             "color_profile": "auto",
             "watermark": "false",
             "watermark_position": "bottom-right",
-            "watermark_text": "Muralis"
+            "watermark_text": "Muralis",
         },
         "storage": {
             "save_downloads": "true",
@@ -388,7 +401,7 @@ class ConfigManager:
             "auto_tag": "true",
             "sync_to_cloud": "false",
             "sync_path": "",
-            "compression_level": "6"
+            "compression_level": "6",
         },
         "scheduling": {
             "update_time": "09:00",
@@ -397,7 +410,7 @@ class ConfigManager:
             "update_on_wake": "true",
             "minimum_interval_hours": "6",
             "skip_on_battery": "false",
-            "only_on_wifi": "true"
+            "only_on_wifi": "true",
         },
         "networking": {
             "proxy_enabled": "false",
@@ -407,7 +420,7 @@ class ConfigManager:
             "user_agent": "Muralis/1.0",
             "verify_ssl": "true",
             "download_timeout": "30",
-            "max_redirects": "5"
+            "max_redirects": "5",
         },
         "wallpaper_effects": {
             "daily_theme": "false",
@@ -417,25 +430,23 @@ class ConfigManager:
             "night_effect": "dark",
             "auto_adjust_brightness": "false",
             "auto_adjust_contrast": "false",
-            "dominant_color": "false"
+            "dominant_color": "false",
         },
         "logging": {
             "log_level": "INFO",
             "log_file": "~/.local/share/muralis/muralis.log",
             "log_rotation_days": "30",
             "debug_mode": "false",
-            "log_http_traffic": "false"
+            "log_http_traffic": "false",
         },
-        "notifications": {
-            "enabled": "true"
-        },
+        "notifications": {"enabled": "true"},
         "advanced": {
             "config_version": "2",
             "experimental_features": "false",
             "cache_enabled": "true",
             "cache_size_mb": "500",
             "parallel_downloads": "1",
-            "max_connections": "5"
+            "max_connections": "5",
         },
         "api_keys": {
             "unsplash_key": "",
@@ -443,8 +454,8 @@ class ConfigManager:
             # https://www.pexels.com/api and override with `muralis --set-key pexels ...`.
             "pexels_key": PexelsProvider.API_KEY,
             "flickr_key": "",
-            "flickr_secret": ""
-        }
+            "flickr_secret": "",
+        },
     }
 
     VALIDATION_RULES = {
@@ -452,8 +463,14 @@ class ConfigManager:
         "general.update_interval": {"type": "int", "min": 300, "max": 604800},
         "image.resolution": {"type": "resolution"},
         "image.jpeg_quality": {"type": "int", "min": 1, "max": 100},
-        "image.effect_type": {"type": "choice", "choices": ["none", "blur", "darken", "grayscale", "vibrant", "vignette"]},
-        "image.fit_mode": {"type": "choice", "choices": ["zoom", "fill", "fit", "stretch", "center"]},
+        "image.effect_type": {
+            "type": "choice",
+            "choices": ["none", "blur", "darken", "grayscale", "vibrant", "vignette"],
+        },
+        "image.fit_mode": {
+            "type": "choice",
+            "choices": ["zoom", "fill", "fit", "stretch", "center"],
+        },
         "image.image_format": {"type": "choice", "choices": ["jpg", "png", "webp"]},
         "storage.max_files": {"type": "int", "min": 0, "max": 10000},
         "storage.max_days": {"type": "int", "min": 0, "max": 365},
@@ -461,7 +478,10 @@ class ConfigManager:
         "scheduling.update_time": {"type": "time"},
         "scheduling.random_delay_minutes": {"type": "int", "min": 0, "max": 120},
         "scheduling.minimum_interval_hours": {"type": "int", "min": 1, "max": 24},
-        "logging.log_level": {"type": "choice", "choices": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]},
+        "logging.log_level": {
+            "type": "choice",
+            "choices": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        },
         "advanced.cache_size_mb": {"type": "int", "min": 100, "max": 5000},
-        "advanced.parallel_downloads": {"type": "int", "min": 1, "max": 5}
+        "advanced.parallel_downloads": {"type": "int", "min": 1, "max": 5},
     }

@@ -17,150 +17,80 @@ def parse_arguments():
         description=t("cli.description"),
         epilog=t("cli.epilog"),
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        prog="muralis"
+        prog="muralis",
     )
-    
+
     # Basic options
+    parser.add_argument("-gui", "--gui", action="store_true", help=t("cli.help.gui"))
+
     parser.add_argument(
-        "-gui", "--gui",
-        action="store_true",
-        help=t("cli.help.gui")
-    )
-    
-    parser.add_argument(
-        "-c", "--config",
+        "-c",
+        "--config",
         default=str(Path.home() / ".config/muralis/config.ini"),
-        help=t("cli.help.config")
+        help=t("cli.help.config"),
     )
-    
-    parser.add_argument(
-        "-p", "--provider",
-        choices=ALL_PROVIDERS,
-        help=t("cli.help.provider")
-    )
-    
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help=t("cli.help.once")
-    )
-    
-    parser.add_argument(
-        "--set-daily",
-        action="store_true",
-        help=t("cli.help.set_daily")
-    )
-    
-    parser.add_argument(
-        "--daemon",
-        action="store_true",
-        help=t("cli.help.daemon")
-    )
-    
-    parser.add_argument(
-        "--list-providers",
-        action="store_true",
-        help=t("cli.help.list_providers")
-    )
-    
-    parser.add_argument(
-        "--show-config",
-        action="store_true",
-        help=t("cli.help.show_config")
-    )
-    
-    parser.add_argument(
-        "-v", "--version",
-        action="version",
-        version=f"Muralis v{__version__}"
-    )
-    
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help=t("cli.help.verbose")
-    )
-    
+
+    parser.add_argument("-p", "--provider", choices=ALL_PROVIDERS, help=t("cli.help.provider"))
+
+    parser.add_argument("--once", action="store_true", help=t("cli.help.once"))
+
+    parser.add_argument("--set-daily", action="store_true", help=t("cli.help.set_daily"))
+
+    parser.add_argument("--daemon", action="store_true", help=t("cli.help.daemon"))
+
+    parser.add_argument("--list-providers", action="store_true", help=t("cli.help.list_providers"))
+
+    parser.add_argument("--show-config", action="store_true", help=t("cli.help.show_config"))
+
+    parser.add_argument("-v", "--version", action="version", version=f"Muralis v{__version__}")
+
+    parser.add_argument("--verbose", action="store_true", help=t("cli.help.verbose"))
+
     # Configuration management commands
-    parser.add_argument(
-        "--export-config",
-        metavar="FILE",
-        help=t("cli.help.export_config")
-    )
-    
-    parser.add_argument(
-        "--import-config",
-        metavar="FILE",
-        help=t("cli.help.import_config")
-    )
-    
-    parser.add_argument(
-        "--get",
-        nargs=1,
-        metavar="SECTION.KEY",
-        help=t("cli.help.get")
-    )
-    
-    parser.add_argument(
-        "--set",
-        nargs=2,
-        metavar=("SECTION.KEY", "VALUE"),
-        help=t("cli.help.set")
-    )
-    
-    parser.add_argument(
-        "--reset-config",
-        action="store_true",
-        help=t("cli.help.reset_config")
-    )
-    
+    parser.add_argument("--export-config", metavar="FILE", help=t("cli.help.export_config"))
+
+    parser.add_argument("--import-config", metavar="FILE", help=t("cli.help.import_config"))
+
+    parser.add_argument("--get", nargs=1, metavar="SECTION.KEY", help=t("cli.help.get"))
+
+    parser.add_argument("--set", nargs=2, metavar=("SECTION.KEY", "VALUE"), help=t("cli.help.set"))
+
+    parser.add_argument("--reset-config", action="store_true", help=t("cli.help.reset_config"))
+
     # API key management commands
+    parser.add_argument("--check-keys", action="store_true", help=t("cli.help.check_keys"))
+
     parser.add_argument(
-        "--check-keys",
-        action="store_true",
-        help=t("cli.help.check_keys")
+        "--set-key", nargs=2, metavar=("PROVIDER", "KEY"), help=t("cli.help.set_key")
     )
-    
+
+    parser.add_argument("--remove-key", metavar="PROVIDER", help=t("cli.help.remove_key"))
+
     parser.add_argument(
-        "--set-key",
-        nargs=2,
-        metavar=("PROVIDER", "KEY"),
-        help=t("cli.help.set_key")
+        "--get-key-instructions", metavar="PROVIDER", help=t("cli.help.get_key_instructions")
     )
-    
-    parser.add_argument(
-        "--remove-key",
-        metavar="PROVIDER",
-        help=t("cli.help.remove_key")
-    )
-    
-    parser.add_argument(
-        "--get-key-instructions",
-        metavar="PROVIDER",
-        help=t("cli.help.get_key_instructions")
-    )
-    
+
     return parser.parse_args()
 
 
 def handle_config_commands(args, app):
     """Handle configuration management commands."""
-    
+
     # Export configuration to JSON
     if args.export_config:
         app.config.export_json(args.export_config)
         return True
-    
+
     # Import configuration from JSON
     if args.import_config:
         app.config.import_json(args.import_config)
         return True
-    
+
     # Get a configuration value
     if args.get:
         section_key = args.get[0]
-        if '.' in section_key:
-            section, key = section_key.split('.', 1)
+        if "." in section_key:
+            section, key = section_key.split(".", 1)
             value = app.config.get(section, key)
             if value:
                 print(value)
@@ -169,38 +99,38 @@ def handle_config_commands(args, app):
         else:
             print(t("cli.err.format"), file=sys.stderr)
         return True
-    
+
     # Set a configuration value
     if args.set:
         section_key, value = args.set
-        if '.' in section_key:
-            section, key = section_key.split('.', 1)
+        if "." in section_key:
+            section, key = section_key.split(".", 1)
             app.config.set(section, key, value)
             print(t("cli.ok.set", section=section, key=key, value=value))
         else:
             print(t("cli.err.format"), file=sys.stderr)
         return True
-    
+
     # Reset configuration to defaults
     if args.reset_config:
         print(t("cli.warn.reset"))
         confirm = input(t("cli.prompt.confirm"))
-        if confirm.lower() == 'y':
+        if confirm.lower() == "y":
             app.config.create_default()
             print(t("cli.ok.reset"))
         else:
             print(t("cli.cancel"))
         return True
-    
+
     return False
 
 
 def handle_api_key_commands(args, app):
     """Handle API key management commands."""
     from muralis.utils.api_keys import APIKeyManager
-    
+
     key_manager = APIKeyManager(app.config)
-    
+
     # Show instructions for getting a key
     if args.get_key_instructions:
         provider = args.get_key_instructions.lower()
@@ -210,21 +140,24 @@ def handle_api_key_commands(args, app):
             print(instructions)
         else:
             print(t("cli.key.no_instructions", provider=provider))
-            print(t("cli.key.available",
-                    providers=", ".join(key_manager.PROVIDER_CONFIG.keys())))
+            print(t("cli.key.available", providers=", ".join(key_manager.PROVIDER_CONFIG.keys())))
         return True
-    
+
     # Set API key
     if args.set_key:
         provider, key = args.set_key
         provider = provider.lower()
-        
+
         if provider not in key_manager.PROVIDER_CONFIG:
             print(t("cli.key.unknown", provider=provider))
-            print(t("cli.key.available_short",
-                    providers=", ".join(key_manager.PROVIDER_CONFIG.keys())))
+            print(
+                t(
+                    "cli.key.available_short",
+                    providers=", ".join(key_manager.PROVIDER_CONFIG.keys()),
+                )
+            )
             return True
-        
+
         # Validate key format
         if key_manager.validate_key(provider, key):
             key_manager.set_key(provider, key)
@@ -232,29 +165,32 @@ def handle_api_key_commands(args, app):
             print(t("cli.key.verify"))
         else:
             print(t("cli.key.invalid", provider=provider.title()))
-            print(t("cli.key.pattern",
-                    pattern=key_manager.PROVIDER_CONFIG[provider].get('pattern', 'N/A')))
-            print(t("cli.key.get_url",
-                    url=key_manager.PROVIDER_CONFIG[provider]['url']))
+            print(
+                t(
+                    "cli.key.pattern",
+                    pattern=key_manager.PROVIDER_CONFIG[provider].get("pattern", "N/A"),
+                )
+            )
+            print(t("cli.key.get_url", url=key_manager.PROVIDER_CONFIG[provider]["url"]))
         return True
-    
+
     # Remove API key
     if args.remove_key:
         provider = args.remove_key.lower()
-        
+
         if provider not in key_manager.PROVIDER_CONFIG:
             print(t("cli.key.unknown", provider=provider))
             return True
-        
-        key_manager.set_key(provider, '')
+
+        key_manager.set_key(provider, "")
         print(t("cli.key.removed", provider=provider.title()))
         return True
-    
+
     # Check keys status
     if args.check_keys:
         key_manager.display_status()
         return True
-    
+
     return False
 
 
@@ -264,10 +200,7 @@ def list_providers():
 
     print(t("cli.providers.title"))
     print("=" * 50)
-    required = {
-        p for p, cfg in APIKeyManager.PROVIDER_CONFIG.items()
-        if cfg.get('required')
-    }
+    required = {p for p, cfg in APIKeyManager.PROVIDER_CONFIG.items() if cfg.get("required")}
     for key in ALL_PROVIDERS:
         icon = "🔑" if key in required else "✅"
         print(f"  {icon} {key:<13} - {t(f'cli.providers.{key}')}")
@@ -328,56 +261,68 @@ def show_help():
 def main():
     """Main entry point."""
     args = parse_arguments()
-    
+
     # Launch GUI (imported lazily so the CLI stays fast when not needed)
     if args.gui:
         from muralis.gui import run_gui
+
         run_gui()
         return 0
-    
+
     # Handle provider listing (no app needed)
     if args.list_providers:
         return list_providers()
-    
+
     # Handle help when no actionable arguments
-    if not (args.once or args.set_daily or args.daemon or args.show_config or 
-            args.export_config or args.import_config or args.get or args.set or
-            args.reset_config or args.check_keys or args.set_key or 
-            args.remove_key or args.get_key_instructions):
+    if not (
+        args.once
+        or args.set_daily
+        or args.daemon
+        or args.show_config
+        or args.export_config
+        or args.import_config
+        or args.get
+        or args.set
+        or args.reset_config
+        or args.check_keys
+        or args.set_key
+        or args.remove_key
+        or args.get_key_instructions
+    ):
         show_help()
         return 0
-    
+
     # Create app for other commands
     app = MuralisApp(args.config, verbose=args.verbose)
-    
+
     # Handle configuration commands
     if handle_config_commands(args, app):
         return 0
-    
+
     # Handle API key commands
     if handle_api_key_commands(args, app):
         return 0
-    
+
     # Handle show config
     if args.show_config:
         app.config.display()
         return 0
-    
+
     # Handle set daily updates
     if args.set_daily:
         success = app.setup_scheduler()
         return 0 if success else 1
-    
+
     # Handle run once
     if args.once:
         success = app.run_once(args.provider)
         return 0 if success else 1
-    
+
     # Handle foreground daemon (blocking auto-update loop)
     if args.daemon:
         app.run_daemon()
         return 0
-    
+
     # Should never reach here
     show_help()
     return 0

@@ -19,6 +19,7 @@ def config_view(config_path: Optional[str] = None):
             ~/.config/muralis/config.json).
     """
     from muralis.config import ConfigManager
+
     if config_path is None:
         config_path = str(Path.home() / ".config" / "muralis" / "config.json")
     return ConfigManager(config_path)

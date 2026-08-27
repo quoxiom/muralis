@@ -19,8 +19,9 @@ _ICONS = {
 }
 
 
-def _box(parent, kind: str, title: str, text: str,
-         buttons=QMessageBox.StandardButton.Ok) -> QMessageBox:
+def _box(
+    parent, kind: str, title: str, text: str, buttons=QMessageBox.StandardButton.Ok
+) -> QMessageBox:
     """Build a QMessageBox whose icon is a greyscale UI glyph."""
     box = QMessageBox(parent)
     box.setWindowTitle(title)
@@ -47,6 +48,10 @@ def critical(parent, title: str, text: str):
 def confirm(parent, title: str, text: str) -> bool:
     """A Yes/No confirmation; returns True when accepted."""
     box = _box(
-        parent, "question", title, text,
-        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        parent,
+        "question",
+        title,
+        text,
+        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+    )
     return box.exec() == QMessageBox.StandardButton.Yes

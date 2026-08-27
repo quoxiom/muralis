@@ -77,10 +77,8 @@ def download_image(
 
         except requests.RequestException as e:
             if attempt < retries - 1:
-                wait_time = 2 ** attempt  # Exponential backoff
-                print(
-                    t("cli.download.retrying", attempt=attempt + 1, error=e, wait=wait_time)
-                )
+                wait_time = 2**attempt  # Exponential backoff
+                print(t("cli.download.retrying", attempt=attempt + 1, error=e, wait=wait_time))
                 time.sleep(wait_time)
                 continue
             else:

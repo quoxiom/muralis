@@ -7,8 +7,13 @@ from typing import Callable, Optional
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QGridLayout, QLabel,
-    QPushButton, QScrollArea, QFrame
+    QWidget,
+    QVBoxLayout,
+    QGridLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QFrame,
 )
 
 from muralis.i18n import t
@@ -28,6 +33,7 @@ def _provider_name() -> str:
     provider = "bing"
     try:
         from .configview import config_view
+
         provider = config_view().get("general", "provider", fallback="bing")
     except Exception:
         pass
@@ -49,7 +55,8 @@ class _Thumb(QFrame):
         pixmap = QPixmap(str(path))
         if not pixmap.isNull():
             scaled = pixmap.scaled(
-                200, 120,
+                200,
+                120,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
@@ -64,8 +71,7 @@ class _Thumb(QFrame):
     def _build_tooltip(self) -> str:
         stat = self._path.stat()
         size_kb = stat.st_size / 1024
-        downloaded = datetime.fromtimestamp(stat.st_mtime).strftime(
-            MODIFIED_TIME_FORMAT)
+        downloaded = datetime.fromtimestamp(stat.st_mtime).strftime(MODIFIED_TIME_FORMAT)
         provider = _provider_name()
         return (
             f"{t('gui.preview.tooltip.name', name=self._path.name)}\n"
@@ -77,6 +83,7 @@ class _Thumb(QFrame):
 
     def _set(self):
         from muralis.setter import get_wallpaper_setter
+
         setter = get_wallpaper_setter()
         if setter.set_wallpaper(str(self._path)):
             if self._applied_cb:
@@ -88,8 +95,9 @@ class _Thumb(QFrame):
         super().mouseDoubleClickEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton and \
-                self.rect().contains(event.position().toPoint()):
+        if event.button() == Qt.MouseButton.LeftButton and self.rect().contains(
+            event.position().toPoint()
+        ):
             self._set()
         super().mouseReleaseEvent(event)
 
@@ -97,9 +105,12 @@ class _Thumb(QFrame):
 class HistoryTab(QWidget):
     """History tab showing past wallpapers."""
 
-    def __init__(self, refresh_callback: Optional[Callable] = None,
-                 wallpaper_applied_callback: Optional[Callable] = None,
-                 parent=None):
+    def __init__(
+        self,
+        refresh_callback: Optional[Callable] = None,
+        wallpaper_applied_callback: Optional[Callable] = None,
+        parent=None,
+    ):
         """Initialize the history tab.
 
         Args:
@@ -125,11 +136,11 @@ class HistoryTab(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-    
+
         self.thumbnails_widget = QWidget()
         self.thumbnails_layout = QGridLayout(self.thumbnails_widget)
         self.thumbnails_layout.setContentsMargins(0, 0, 0, 0)
-        #self.thumbnails_layout.setSpacing(0)
+        # self.thumbnails_layout.setSpacing(0)
         scroll.setWidget(self.thumbnails_widget)
 
         layout.addWidget(scroll)

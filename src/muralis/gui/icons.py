@@ -24,8 +24,7 @@ def render_pixmap(name: str, size: int = 18, color: str = ICON_IDLE) -> QPixmap:
     pixmap.fill(Qt.GlobalColor.transparent)
     painter = QPainter(pixmap)
     renderer.render(painter, QRectF(0, 0, size, size))
-    painter.setCompositionMode(
-        QPainter.CompositionMode.CompositionMode_SourceIn)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
     painter.fillRect(pixmap.rect(), QColor(color))
     painter.end()
     return pixmap
@@ -59,9 +58,7 @@ def icon_tint_for_theme(colors: dict) -> str:
     try:
         s = colors.get("window", "#ffffff")
         s = s.lstrip("#")
-        luminance = (int(s[0:2], 16) * 299
-                     + int(s[2:4], 16) * 587
-                     + int(s[4:6], 16) * 114) / 1000
+        luminance = (int(s[0:2], 16) * 299 + int(s[2:4], 16) * 587 + int(s[4:6], 16) * 114) / 1000
         return "#1a1a1a" if luminance > 128 else "#e8e8e8"
     except (ValueError, IndexError):
         return "#d4d4d4"

@@ -10,19 +10,19 @@ from .history_tab import HistoryTab
 from .preview_widget import PreviewWidget
 
 __all__ = [
-    'MainWindow',
-    'SettingsTab', 
-    'HistoryTab',
-    'PreviewWidget',
+    "MainWindow",
+    "SettingsTab",
+    "HistoryTab",
+    "PreviewWidget",
 ]
 
 
 def run_gui():
     """Launch Muralis GUI application.
-    
+
     This is the main entry point for the GUI. It creates the
     QApplication, main window, and starts the event loop.
-    
+
     Example:
         from muralis.gui import run_gui
         run_gui()
@@ -48,8 +48,8 @@ def run_gui():
     stored = DEFAULT_THEME
     try:
         from .configview import config_view
-        stored = config_view(str(config_path)).get(
-            "gui", "theme", fallback=DEFAULT_THEME)
+
+        stored = config_view(str(config_path)).get("gui", "theme", fallback=DEFAULT_THEME)
     except Exception:
         pass
     if not theme_manager.apply(stored):
@@ -71,17 +71,17 @@ def run_gui():
     pal.setColor(QPalette.ColorRole.Highlight, QColor(colors.get("accent", "#7c6cf6")))
     pal.setColor(QPalette.ColorRole.HighlightedText, QColor(colors.get("accent_text", "#ffffff")))
     app.setPalette(pal)
-    
+
     # Enable high DPI scaling for better display on high-resolution screens
     app.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True)
     app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
-    
+
     # Set application icon (once we have icons)
     # app.setWindowIcon(QIcon(":/icons/muralis.png"))
-    
+
     window = MainWindow()
     window.show()
-    
+
     sys.exit(app.exec())
 
 

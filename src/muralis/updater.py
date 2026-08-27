@@ -52,7 +52,7 @@ class WallpaperUpdater:
             self.logger.info(f"📡 Using provider: {provider.name}")
 
             # Get wallpaper URL
-            resolution = self.config.get_str('image', 'resolution', '3840x2160')
+            resolution = self.config.get_str("image", "resolution", "3840x2160")
             self.logger.debug(f"Requested resolution: {resolution}")
 
             url = provider.get_daily_url(resolution)
@@ -100,12 +100,10 @@ class WallpaperUpdater:
     def _build_image_path(self, provider: Any) -> Path:
         """Build the on-disk destination path for a provider's wallpaper."""
         download_dir = self.config.get_download_dir()
-        date_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+        date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         metadata = self._provider_metadata(provider)
-        title = metadata.get('title', provider.name)
-        safe_title = "".join(
-            c for c in title[:30] if c.isalnum() or c in (' ', '-', '_')
-        ).strip()
+        title = metadata.get("title", provider.name)
+        safe_title = "".join(c for c in title[:30] if c.isalnum() or c in (" ", "-", "_")).strip()
         filename = f"muralis_{date_str}_{provider.name}_{safe_title}.jpg"
         return download_dir / filename
 
@@ -120,18 +118,19 @@ class WallpaperUpdater:
 
     def _apply_effects(self, image_path: Path) -> Path:
         """Apply the configured image effect, returning the final path."""
-        if not self.config.get_bool('image', 'apply_effects', False):
+        if not self.config.get_bool("image", "apply_effects", False):
             return image_path
         from muralis.utils.effects import apply_effect
-        effect_type = self.config.get_str('image', 'effect_type', 'none')
-        if effect_type == 'none':
+
+        effect_type = self.config.get_str("image", "effect_type", "none")
+        if effect_type == "none":
             return image_path
         self.logger.info(f"🎨 Applying effect: {effect_type}")
         return Path(apply_effect(str(image_path), effect_type))
 
     def _cleanup(self, image_path: Path, final_path: Path):
         """Delete temporary files or clean up old wallpapers per policy."""
-        if not self.config.get_bool('storage', 'save_downloads', True):
+        if not self.config.get_bool("storage", "save_downloads", True):
             image_path.unlink(missing_ok=True)
             if final_path != image_path:
                 final_path.unlink(missing_ok=True)
@@ -143,10 +142,10 @@ class WallpaperUpdater:
 
     def _notify(self, provider: Any, metadata: Dict[str, Any]):
         """Send a desktop notification when notifications are enabled."""
-        if not self.config.get_bool('notifications', 'enabled', True):
+        if not self.config.get_bool("notifications", "enabled", True):
             return
         title = f"Muralis: {provider.name.title()}"
-        message = metadata.get('copyright', metadata.get('title', 'Wallpaper updated'))
+        message = metadata.get("copyright", metadata.get("title", "Wallpaper updated"))
         if len(message) > 100:
             message = message[:97] + "..."
         send_notification(title, message)

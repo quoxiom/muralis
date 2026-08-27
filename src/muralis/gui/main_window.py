@@ -10,9 +10,16 @@ from pathlib import Path
 from datetime import datetime, timedelta
 
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QLabel, QStackedWidget, QStatusBar,
-    QFrame, QButtonGroup
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QLabel,
+    QStackedWidget,
+    QStatusBar,
+    QFrame,
+    QButtonGroup,
 )
 from PySide6.QtCore import Qt, QTimer, QSize
 
@@ -40,6 +47,7 @@ def _safe_mtime(path: Path) -> float:
         return path.stat().st_mtime
     except OSError:
         return 0.0
+
 
 # Navigation entries: (key, icon name, translation key, page comment key)
 NAV_ITEMS = [
@@ -86,39 +94,50 @@ class MainWindow(QMainWindow):
         root_layout.addWidget(self.stack, 1)
 
         # Build pages
-        self.preview_widget = PreviewWidget(
-            refresh_callback=self._refresh_wallpaper,
-            parent=self
-        )
+        self.preview_widget = PreviewWidget(refresh_callback=self._refresh_wallpaper, parent=self)
         self.history_tab = HistoryTab(
             refresh_callback=self._refresh_wallpaper,
             wallpaper_applied_callback=self._load_current_wallpaper,
-            parent=self
+            parent=self,
         )
         self.settings_tab = SettingsTab(
             theme_manager=self.theme_manager,
             on_theme_change=self._set_theme,
             on_settings_changed=self._update_status_bar,
             on_auto_update_changed=self._setup_auto_update_scheduler,
-            parent=self
+            parent=self,
         )
         self.about_page = self._build_about_page()
 
         self.pages = [
-            ("preview", self._make_page(
-                t("gui.nav.preview"), t("gui.page.preview_subtitle"),
-                self.preview_widget,
-                actions=self.preview_widget.action_buttons())),
-            ("history", self._make_page(
-                t("gui.nav.history"), t("gui.page.history_subtitle"),
-                self.history_tab,
-                actions=self.history_tab.action_buttons())),
-            ("settings", self._make_page(
-                t("gui.nav.settings"), t("gui.page.settings_subtitle"),
-                self.settings_tab,
-                actions=self.settings_tab.action_buttons())),
-            ("about", self._make_page(
-                t("gui.nav.about"), "", self.about_page)),
+            (
+                "preview",
+                self._make_page(
+                    t("gui.nav.preview"),
+                    t("gui.page.preview_subtitle"),
+                    self.preview_widget,
+                    actions=self.preview_widget.action_buttons(),
+                ),
+            ),
+            (
+                "history",
+                self._make_page(
+                    t("gui.nav.history"),
+                    t("gui.page.history_subtitle"),
+                    self.history_tab,
+                    actions=self.history_tab.action_buttons(),
+                ),
+            ),
+            (
+                "settings",
+                self._make_page(
+                    t("gui.nav.settings"),
+                    t("gui.page.settings_subtitle"),
+                    self.settings_tab,
+                    actions=self.settings_tab.action_buttons(),
+                ),
+            ),
+            ("about", self._make_page(t("gui.nav.about"), "", self.about_page)),
         ]
         for _, page in self.pages:
             self.stack.addWidget(page)
@@ -198,12 +217,10 @@ class MainWindow(QMainWindow):
             button.setIconSize(QSize(18, 18))
             button.toggled.connect(
                 lambda checked, b=button, n=icon_name: b.setIcon(
-                    make_icon(n, self._theme_accent() if checked else ICON_IDLE,
-                              18))
+                    make_icon(n, self._theme_accent() if checked else ICON_IDLE, 18)
+                )
             )
-            button.clicked.connect(
-                lambda checked=False, k=key: self._show_page(k)
-            )
+            button.clicked.connect(lambda checked=False, k=key: self._show_page(k))
             self.nav_group.addButton(button)
             self.nav_buttons[key] = button
             self.nav_meta[key] = (icon_name, label)
@@ -273,14 +290,16 @@ class MainWindow(QMainWindow):
 
         card_layout.addSpacing(8)
 
-        github = QLabel(f'<a href="https://github.com/quoxiom/muralis">'
-                        f"{t('gui.about.github')}</a>")
+        github = QLabel(
+            f'<a href="https://github.com/quoxiom/muralis">' f"{t('gui.about.github')}</a>"
+        )
         github.setObjectName("aboutLink")
         github.setOpenExternalLinks(True)
         card_layout.addWidget(github)
 
-        docs = QLabel(f'<a href="https://github.com/quoxiom/muralis/wiki">'
-                      f"{t('gui.about.docs')}</a>")
+        docs = QLabel(
+            f'<a href="https://github.com/quoxiom/muralis/wiki">' f"{t('gui.about.docs')}</a>"
+        )
         docs.setObjectName("aboutLink")
         docs.setOpenExternalLinks(True)
         card_layout.addWidget(docs)
@@ -290,8 +309,9 @@ class MainWindow(QMainWindow):
 
         return page
 
-    def _make_page(self, title: str, comment: str, widget: QWidget,
-                   actions: Optional[list] = None) -> QWidget:
+    def _make_page(
+        self, title: str, comment: str, widget: QWidget, actions: Optional[list] = None
+    ) -> QWidget:
         """Wrap a page widget with a header.
 
         The comment (description) is placed in front of the view name, on the
@@ -354,11 +374,7 @@ class MainWindow(QMainWindow):
         # Current image
         image_name = "—"
         if WALLPAPER_DIR.exists():
-            wallpapers = sorted(
-                WALLPAPER_DIR.glob("muralis_*.jpg"),
-                key=_safe_mtime,
-                reverse=True
-            )
+            wallpapers = sorted(WALLPAPER_DIR.glob("muralis_*.jpg"), key=_safe_mtime, reverse=True)
             if wallpapers:
                 image_name = wallpapers[0].name
 
@@ -372,8 +388,7 @@ class MainWindow(QMainWindow):
         if timer_path.exists():
             fetch_time = self._next_fetch_time(timer_path)
             provider_display = self._provider_name(provider)
-            schedule = t("gui.statusbar.update_on",
-                         provider=provider_display, time=fetch_time)
+            schedule = t("gui.statusbar.update_on", provider=provider_display, time=fetch_time)
             next_fetch = t("gui.statusbar.update_next", time=fetch_time)
             update_text = f"{schedule}{sep}{next_fetch}"
         else:
@@ -427,8 +442,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
     def _theme_accent(self) -> str:
         """The accent color of the currently applied theme."""
-        theme_id = self._read_config().get(
-            "gui", "theme", fallback=DEFAULT_THEME)
+        theme_id = self._read_config().get("gui", "theme", fallback=DEFAULT_THEME)
         colors = self.theme_manager.load_colors(theme_id)
         accent = colors.get("accent")
         return accent if isinstance(accent, str) else ICON_IDLE
@@ -438,13 +452,11 @@ class MainWindow(QMainWindow):
         accent = self._theme_accent()
         for key, button in self.nav_buttons.items():
             icon_name = self.nav_meta[key][0]
-            button.setIcon(make_icon(
-                icon_name, accent if button.isChecked() else ICON_IDLE, 18))
+            button.setIcon(make_icon(icon_name, accent if button.isChecked() else ICON_IDLE, 18))
 
     def _refresh_app_icon(self):
         """Re-tint the window icon for the active theme's surfaces."""
-        theme_id = self._read_config().get(
-            "gui", "theme", fallback=DEFAULT_THEME)
+        theme_id = self._read_config().get("gui", "theme", fallback=DEFAULT_THEME)
         colors = self.theme_manager.load_colors(theme_id)
         tint = icon_tint_for_theme(colors)
         self.setWindowIcon(app_icon(tint))
@@ -493,13 +505,17 @@ class MainWindow(QMainWindow):
             else:
                 self.status_bar.showMessage(t("gui.status.failed"), 3000)
                 from .dialogs import warning
-                warning(self, t("gui.dialog.error_title"),
-                        t("gui.dialog.failed_update"))
+
+                warning(self, t("gui.dialog.error_title"), t("gui.dialog.failed_update"))
         except Exception as e:
             self.status_bar.showMessage(t("gui.status.error", error=str(e)), 5000)
             from .dialogs import critical
-            critical(self, t("gui.dialog.error_title"),
-                     t("gui.dialog.failed_update_detail", error=str(e)))
+
+            critical(
+                self,
+                t("gui.dialog.error_title"),
+                t("gui.dialog.failed_update_detail", error=str(e)),
+            )
 
     def _auto_refresh_preview(self):
         """Auto-refresh the preview; also trigger the daily scheduled update."""
@@ -509,16 +525,18 @@ class MainWindow(QMainWindow):
     def _check_scheduled_update(self):
         """Run the wallpaper update if auto-update is on and the time matches."""
         from datetime import date
+
         try:
-            if not self._read_config().getboolean(
-                    "general", "auto_update", fallback=True):
+            if not self._read_config().getboolean("general", "auto_update", fallback=True):
                 return
-            time_str = self._read_config().get(
-                "scheduling", "update_time", fallback="09:00")
+            time_str = self._read_config().get("scheduling", "update_time", fallback="09:00")
             hour, minute = map(int, time_str.split(":"))
             now = datetime.now()
-            if now.hour == hour and now.minute == minute and \
-                    self._last_daily_run != date.today().isoformat():
+            if (
+                now.hour == hour
+                and now.minute == minute
+                and self._last_daily_run != date.today().isoformat()
+            ):
                 self._last_daily_run = date.today().isoformat()
                 self._refresh_wallpaper()
         except (ValueError, AttributeError):
@@ -528,6 +546,7 @@ class MainWindow(QMainWindow):
         """Install or remove the background (systemd) daily timer."""
         from muralis.app import MuralisApp
         from muralis.scheduler import SchedulerManager
+
         app = MuralisApp(str(CONFIG_PATH))
         sched = SchedulerManager(app.config)
         if enable:

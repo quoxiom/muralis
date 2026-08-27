@@ -6,9 +6,7 @@ from typing import Callable, Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QResizeEvent
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QSizePolicy
-)
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QSizePolicy
 
 from muralis.i18n import t
 
@@ -29,6 +27,7 @@ def _provider_name() -> str:
     provider = "bing"
     try:
         from .configview import config_view
+
         provider = config_view().get("general", "provider", fallback="bing")
     except Exception:
         pass
@@ -56,16 +55,14 @@ class PreviewWidget(QWidget):
         self.preview_label.setObjectName("previewImage")
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setMinimumHeight(200)
-        self.preview_label.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.preview_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.preview_label.setToolTip("")
         layout.addWidget(self.preview_label, 1)
 
         # Action buttons (text-only, styled like the rest of the UI). They are
         # placed right-aligned in the page header row by MainWindow._make_page.
         self.refresh_btn = self._make_action_button(t("gui.preview.refresh"))
-        self.open_folder_btn = self._make_action_button(
-            t("gui.preview.open_folder"))
+        self.open_folder_btn = self._make_action_button(t("gui.preview.open_folder"))
         self.refresh_btn.clicked.connect(self.request_refresh)
         self.open_folder_btn.clicked.connect(self.open_wallpaper_folder)
 
@@ -76,8 +73,7 @@ class PreviewWidget(QWidget):
     def _make_action_button(self, label: str) -> QPushButton:
         button = QPushButton(label)
         button.setCursor(Qt.CursorShape.PointingHandCursor)
-        button.setSizePolicy(
-            QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        button.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
         return button
 
     def request_refresh(self):
@@ -107,8 +103,7 @@ class PreviewWidget(QWidget):
 
             stat = image_path.stat()
             size_kb = stat.st_size / 1024
-            downloaded = datetime.fromtimestamp(stat.st_mtime).strftime(
-                MODIFIED_TIME_FORMAT)
+            downloaded = datetime.fromtimestamp(stat.st_mtime).strftime(MODIFIED_TIME_FORMAT)
             provider = _provider_name()
 
             # Name + rich details on hover, not as cluttering on-screen text.
@@ -146,6 +141,7 @@ class PreviewWidget(QWidget):
 
     def open_wallpaper_folder(self):
         import subprocess
+
         wallpaper_dir = Path.home() / "Pictures" / "Muralis"
         wallpaper_dir.mkdir(parents=True, exist_ok=True)
         subprocess.run(["xdg-open", str(wallpaper_dir)])

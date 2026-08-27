@@ -12,9 +12,20 @@ from typing import Callable, Dict, List, Optional, Tuple
 from PySide6.QtCore import Qt, QSignalBlocker, Signal
 from PySide6.QtGui import QFont, QFontMetrics
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QPushButton, QButtonGroup, QSpinBox, QTimeEdit,
-    QScrollArea, QFrame, QLabel, QStackedWidget, QSizePolicy, QApplication
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QGridLayout,
+    QPushButton,
+    QButtonGroup,
+    QSpinBox,
+    QTimeEdit,
+    QScrollArea,
+    QFrame,
+    QLabel,
+    QStackedWidget,
+    QSizePolicy,
+    QApplication,
 )
 from PySide6.QtCore import QTime
 
@@ -22,9 +33,7 @@ from muralis.i18n import t
 from muralis.providers import ALL_PROVIDERS
 from .theme import DEFAULT_THEME
 
-PROVIDERS: List[Tuple[str, str]] = [
-    (key, f"gui.provider.{key}") for key in ALL_PROVIDERS
-]
+PROVIDERS: List[Tuple[str, str]] = [(key, f"gui.provider.{key}") for key in ALL_PROVIDERS]
 
 RESOLUTIONS = [
     ("FHD", "1920x1080"),
@@ -73,14 +82,14 @@ class _NavItem(QWidget):
         self.style().polish(self)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton and \
-                self.rect().contains(event.position().toPoint()):
+        if event.button() == Qt.MouseButton.LeftButton and self.rect().contains(
+            event.position().toPoint()
+        ):
             self.clicked.emit()
         super().mouseReleaseEvent(event)
 
     def keyPressEvent(self, event):
-        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter,
-                           Qt.Key.Key_Space):
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Space):
             self.clicked.emit()
         super().keyPressEvent(event)
 
@@ -88,11 +97,14 @@ class _NavItem(QWidget):
 class SettingsTab(QWidget):
     """Settings tab for configuring Muralis."""
 
-    def __init__(self, theme_manager=None,
-                 on_theme_change: Optional[Callable[[str], None]] = None,
-                 on_settings_changed: Optional[Callable[[], None]] = None,
-                 on_auto_update_changed: Optional[Callable[[bool], None]] = None,
-                 parent=None):
+    def __init__(
+        self,
+        theme_manager=None,
+        on_theme_change: Optional[Callable[[str], None]] = None,
+        on_settings_changed: Optional[Callable[[], None]] = None,
+        on_auto_update_changed: Optional[Callable[[bool], None]] = None,
+        parent=None,
+    ):
         """Initialize the settings tab.
 
         Args:
@@ -146,8 +158,7 @@ class SettingsTab(QWidget):
         nav_scroll = QScrollArea()
         nav_scroll.setWidgetResizable(True)
         nav_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        nav_scroll.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        nav_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         nav_content = QWidget()
         nav_content_layout = QVBoxLayout(nav_content)
@@ -215,10 +226,8 @@ class SettingsTab(QWidget):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        scroll.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll.setWidget(content)
         return scroll
 
@@ -226,8 +235,7 @@ class SettingsTab(QWidget):
     # Row helpers
     # ------------------------------------------------------------------
     @staticmethod
-    def _row(layout: QVBoxLayout, label: str, control: QWidget,
-             description: str = ""):
+    def _row(layout: QVBoxLayout, label: str, control: QWidget, description: str = ""):
         """A setting row: label (and description) left, control right.
 
         The label/description block and the control are top-aligned so the
@@ -261,9 +269,13 @@ class SettingsTab(QWidget):
         row_layout.addWidget(control, 0, Qt.AlignmentFlag.AlignTop)
         layout.addWidget(row)
 
-    def _segmented(self, labels: List[str], cols: int,
-                   values: Optional[List[str]] = None,
-                   tooltips: Optional[List[str]] = None) -> Tuple[QWidget, List[QPushButton]]:
+    def _segmented(
+        self,
+        labels: List[str],
+        cols: int,
+        values: Optional[List[str]] = None,
+        tooltips: Optional[List[str]] = None,
+    ) -> Tuple[QWidget, List[QPushButton]]:
         """A grid of exclusive selection buttons.
 
         Each button carries its value in a 'value' property; labels may differ
@@ -290,8 +302,7 @@ class SettingsTab(QWidget):
             if tooltips:
                 button.setToolTip(tooltips[index])
             button.setCursor(Qt.CursorShape.PointingHandCursor)
-            button.setSizePolicy(
-                QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+            button.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
             group.addButton(button)
             buttons.append(button)
             grid.addWidget(button, index // cols, index % cols)
@@ -322,8 +333,7 @@ class SettingsTab(QWidget):
         button.setCheckable(True)
         button.setChecked(checked)
         button.setCursor(Qt.CursorShape.PointingHandCursor)
-        button.setSizePolicy(
-            QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        button.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
         # Use the application font (which reflects the applied theme QSS font)
         # so the bold checked label fits once the stylesheet is active.
         bold = QFont(QApplication.font())
@@ -337,8 +347,7 @@ class SettingsTab(QWidget):
         spin = QSpinBox()
         spin.setRange(minimum, maximum)
         spin.setSpecialValueText(special_text)
-        spin.setSizePolicy(
-            QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        spin.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
         return spin
 
     # ------------------------------------------------------------------
@@ -346,86 +355,120 @@ class SettingsTab(QWidget):
     # ------------------------------------------------------------------
     def _build_general_rows(self, layout: QVBoxLayout):
         provider_widget, self.provider_buttons = self._segmented(
-            [t(key) for _, key in PROVIDERS], cols=4,
-            values=[key for key, _ in PROVIDERS])
+            [t(key) for _, key in PROVIDERS], cols=4, values=[key for key, _ in PROVIDERS]
+        )
         # Disable providers that need an API key but aren't configured.
         enabled = {key: self._provider_configured(key) for key, _ in PROVIDERS}
         for button, (key, _) in zip(self.provider_buttons, PROVIDERS):
             if not enabled[key]:
                 button.setEnabled(False)
-        self._row(layout, t("gui.settings.provider"), provider_widget,
-                  description=t("gui.settings.desc.provider"))
+        self._row(
+            layout,
+            t("gui.settings.provider"),
+            provider_widget,
+            description=t("gui.settings.desc.provider"),
+        )
         layout.addSpacing(6)
 
         self.auto_update_toggle = self._toggle_button(t("gui.settings.auto_update"))
-        self._row(layout, t("gui.settings.auto_update"),
-                  self.auto_update_toggle,
-                  description=t("gui.settings.desc.auto_update"))
+        self._row(
+            layout,
+            t("gui.settings.auto_update"),
+            self.auto_update_toggle,
+            description=t("gui.settings.desc.auto_update"),
+        )
 
         # Automatic Update Time (only enabled when auto-update is active).
         self.update_time_edit = QTimeEdit()
         self.update_time_edit.setDisplayFormat("HH:mm")
         self.update_time_edit.setTime(QTime(9, 0))
-        self.update_time_edit.setSizePolicy(
-            QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
-        self._row(layout, t("gui.settings.update_time"), self.update_time_edit,
-                  description=t("gui.settings.desc.update_time"))
-        self.auto_update_toggle.toggled.connect(
-            self.update_time_edit.setEnabled)
-        self.update_time_edit.setEnabled(
-            self.auto_update_toggle.isChecked())
+        self.update_time_edit.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        self._row(
+            layout,
+            t("gui.settings.update_time"),
+            self.update_time_edit,
+            description=t("gui.settings.desc.update_time"),
+        )
+        self.auto_update_toggle.toggled.connect(self.update_time_edit.setEnabled)
+        self.update_time_edit.setEnabled(self.auto_update_toggle.isChecked())
 
         self.randomize_toggle = self._toggle_button(t("gui.settings.randomize"))
-        self._row(layout, t("gui.settings.randomize"), self.randomize_toggle,
-                  description=t("gui.settings.desc.randomize"))
+        self._row(
+            layout,
+            t("gui.settings.randomize"),
+            self.randomize_toggle,
+            description=t("gui.settings.desc.randomize"),
+        )
 
     def _build_image_rows(self, layout: QVBoxLayout):
         resolution_labels = [label for label, _ in RESOLUTIONS]
         resolution_values = [res for _, res in RESOLUTIONS]
         resolution_widget, self.resolution_buttons = self._segmented(
-            resolution_labels, cols=3,
-            values=resolution_values,
-            tooltips=resolution_values)
-        self._row(layout, t("gui.settings.resolution"), resolution_widget,
-                  description=t("gui.settings.desc.resolution"))
+            resolution_labels, cols=3, values=resolution_values, tooltips=resolution_values
+        )
+        self._row(
+            layout,
+            t("gui.settings.resolution"),
+            resolution_widget,
+            description=t("gui.settings.desc.resolution"),
+        )
         layout.addSpacing(6)
 
         self.effects_toggle = self._toggle_button(t("gui.settings.effects"))
-        self._row(layout, t("gui.settings.effects"), self.effects_toggle,
-                  description=t("gui.settings.desc.effects"))
+        self._row(
+            layout,
+            t("gui.settings.effects"),
+            self.effects_toggle,
+            description=t("gui.settings.desc.effects"),
+        )
 
         effect_widget, self.effect_buttons = self._segmented(EFFECTS, cols=3)
         self.effect_widget = effect_widget
-        self._row(layout, t("gui.settings.effect_type"), effect_widget,
-                  description=t("gui.settings.desc.effect_type"))
+        self._row(
+            layout,
+            t("gui.settings.effect_type"),
+            effect_widget,
+            description=t("gui.settings.desc.effect_type"),
+        )
         layout.addSpacing(6)
 
         self.effects_toggle.toggled.connect(self._update_effect_state)
 
     def _build_storage_rows(self, layout: QVBoxLayout):
-        self.save_downloads_toggle = self._toggle_button(
-            t("gui.settings.save_downloads"))
-        self._row(layout, t("gui.settings.save_downloads"),
-                  self.save_downloads_toggle,
-                  description=t("gui.settings.desc.save_downloads"))
+        self.save_downloads_toggle = self._toggle_button(t("gui.settings.save_downloads"))
+        self._row(
+            layout,
+            t("gui.settings.save_downloads"),
+            self.save_downloads_toggle,
+            description=t("gui.settings.desc.save_downloads"),
+        )
 
         self.max_files_spin = self._spin(0, 10000, t("gui.settings.unlimited"))
-        self._row(layout, t("gui.settings.max_files"), self.max_files_spin,
-                  description=t("gui.settings.desc.max_files"))
+        self._row(
+            layout,
+            t("gui.settings.max_files"),
+            self.max_files_spin,
+            description=t("gui.settings.desc.max_files"),
+        )
 
         self.max_days_spin = self._spin(0, 365, t("gui.settings.unlimited"))
-        self._row(layout, t("gui.settings.max_days"), self.max_days_spin,
-                  description=t("gui.settings.desc.max_days"))
+        self._row(
+            layout,
+            t("gui.settings.max_days"),
+            self.max_days_spin,
+            description=t("gui.settings.desc.max_days"),
+        )
 
     def _build_appearance_rows(self, layout: QVBoxLayout):
         theme_names = self._available_themes()
-        theme_widget, self.theme_buttons = self._segmented(
-            theme_names, cols=3, values=theme_names)
+        theme_widget, self.theme_buttons = self._segmented(theme_names, cols=3, values=theme_names)
         for button, theme_id in zip(self.theme_buttons, theme_names):
             button.toggled.connect(
-                lambda checked, tid=theme_id: self._on_theme_clicked(checked, tid))
-        self._row(layout, t("gui.settings.theme"), theme_widget,
-                  description=t("gui.settings.desc.theme"))
+                lambda checked, tid=theme_id: self._on_theme_clicked(checked, tid)
+            )
+        self._row(
+            layout, t("gui.settings.theme"), theme_widget, description=t("gui.settings.desc.theme")
+        )
         layout.addSpacing(6)
 
     def _build_action_buttons(self):
@@ -457,6 +500,7 @@ class SettingsTab(QWidget):
         try:
             from muralis.config import ConfigManager
             from muralis.utils.api_keys import APIKeyManager
+
             config = ConfigManager(str(self.config_path))
             return APIKeyManager(config).is_configured(provider)
         except Exception:
@@ -466,12 +510,14 @@ class SettingsTab(QWidget):
         if self.theme_manager is None:
             return [DEFAULT_THEME]
         return [
-            theme_id for theme_id in self.theme_manager.list_themes()
+            theme_id
+            for theme_id in self.theme_manager.list_themes()
             if self.theme_manager.load_colors(theme_id)
         ]
 
-    def _check_value(self, buttons: List[QPushButton], value: str,
-                     fallback: Optional[str] = None) -> None:
+    def _check_value(
+        self, buttons: List[QPushButton], value: str, fallback: Optional[str] = None
+    ) -> None:
         """Check the button whose value property equals value (no signals).
 
         If value is stale (not present in the buttons), the fallback is
@@ -517,6 +563,7 @@ class SettingsTab(QWidget):
     def _load_raw(self):
         """ConfigParser-compatible view over the JSON config."""
         from .configview import config_view
+
         return config_view(str(self.config_path))
 
     def load_settings(self):
@@ -524,9 +571,9 @@ class SettingsTab(QWidget):
         config = self._load_raw()
 
         # Defaults first, so a missing/deleted config resets the UI
-        self._check_value(self.provider_buttons, 'bing')
-        self._check_value(self.resolution_buttons, '3840x2160')
-        self._check_value(self.effect_buttons, 'none')
+        self._check_value(self.provider_buttons, "bing")
+        self._check_value(self.resolution_buttons, "3840x2160")
+        self._check_value(self.effect_buttons, "none")
         self._check_value(self.theme_buttons, DEFAULT_THEME)
         self._set_toggle(self.auto_update_toggle, True)
         self.update_time_edit.setTime(QTime(9, 0))
@@ -537,51 +584,58 @@ class SettingsTab(QWidget):
         self.max_days_spin.setValue(30)
 
         # Overrides from the config file (with fallbacks for stale values)
-        if config.has_section('general'):
+        if config.has_section("general"):
             self._check_value(
                 self.provider_buttons,
-                config.get('general', 'provider', fallback='bing'),
-                fallback='bing')
-            self._set_toggle(self.auto_update_toggle,
-                             config.getboolean('general', 'auto_update', fallback=True))
-            time_str = config.get(
-                'scheduling', 'update_time', fallback='09:00')
+                config.get("general", "provider", fallback="bing"),
+                fallback="bing",
+            )
+            self._set_toggle(
+                self.auto_update_toggle, config.getboolean("general", "auto_update", fallback=True)
+            )
+            time_str = config.get("scheduling", "update_time", fallback="09:00")
             try:
-                h, m = map(int, time_str.split(':'))
+                h, m = map(int, time_str.split(":"))
                 self.update_time_edit.setTime(QTime(h, m))
             except (ValueError, AttributeError):
                 self.update_time_edit.setTime(QTime(9, 0))
-            self._set_toggle(self.randomize_toggle,
-                             config.getboolean('general', 'randomize_provider', fallback=False))
+            self._set_toggle(
+                self.randomize_toggle,
+                config.getboolean("general", "randomize_provider", fallback=False),
+            )
 
         # Image
-        if config.has_section('image'):
+        if config.has_section("image"):
             self._check_value(
                 self.resolution_buttons,
-                config.get('image', 'resolution', fallback='3840x2160'),
-                fallback='3840x2160')
-            self._set_toggle(self.effects_toggle,
-                             config.getboolean('image', 'apply_effects', fallback=False))
+                config.get("image", "resolution", fallback="3840x2160"),
+                fallback="3840x2160",
+            )
+            self._set_toggle(
+                self.effects_toggle, config.getboolean("image", "apply_effects", fallback=False)
+            )
             self._check_value(
                 self.effect_buttons,
-                config.get('image', 'effect_type', fallback='none'),
-                fallback='none')
+                config.get("image", "effect_type", fallback="none"),
+                fallback="none",
+            )
 
         # Storage
-        if config.has_section('storage'):
-            self._set_toggle(self.save_downloads_toggle,
-                             config.getboolean('storage', 'save_downloads', fallback=True))
-            self.max_files_spin.setValue(
-                config.getint('storage', 'max_files', fallback=100))
-            self.max_days_spin.setValue(
-                config.getint('storage', 'max_days', fallback=30))
+        if config.has_section("storage"):
+            self._set_toggle(
+                self.save_downloads_toggle,
+                config.getboolean("storage", "save_downloads", fallback=True),
+            )
+            self.max_files_spin.setValue(config.getint("storage", "max_files", fallback=100))
+            self.max_days_spin.setValue(config.getint("storage", "max_days", fallback=30))
 
         # Appearance
-        if config.has_section('gui'):
+        if config.has_section("gui"):
             self._check_value(
                 self.theme_buttons,
-                config.get('gui', 'theme', fallback=DEFAULT_THEME),
-                fallback=DEFAULT_THEME)
+                config.get("gui", "theme", fallback=DEFAULT_THEME),
+                fallback=DEFAULT_THEME,
+            )
 
         self._update_effect_state(self.effects_toggle.isChecked())
 
@@ -590,44 +644,35 @@ class SettingsTab(QWidget):
         config = self._load_raw()
 
         # General section
-        if 'general' not in config:
-            config['general'] = {}
-        config['general']['provider'] = self._checked_value(
-            self.provider_buttons, 'bing')
-        config['general']['auto_update'] = str(
-            self.auto_update_toggle.isChecked()).lower()
-        config['general']['randomize_provider'] = str(
-            self.randomize_toggle.isChecked()).lower()
+        if "general" not in config:
+            config["general"] = {}
+        config["general"]["provider"] = self._checked_value(self.provider_buttons, "bing")
+        config["general"]["auto_update"] = str(self.auto_update_toggle.isChecked()).lower()
+        config["general"]["randomize_provider"] = str(self.randomize_toggle.isChecked()).lower()
 
         # Scheduling (automatic update time)
-        if 'scheduling' not in config:
-            config['scheduling'] = {}
-        config['scheduling']['update_time'] = self.update_time_edit.time().toString(
-            "HH:mm")
+        if "scheduling" not in config:
+            config["scheduling"] = {}
+        config["scheduling"]["update_time"] = self.update_time_edit.time().toString("HH:mm")
 
         # Image section
-        if 'image' not in config:
-            config['image'] = {}
-        config['image']['resolution'] = self._checked_value(
-            self.resolution_buttons, '3840x2160')
-        config['image']['apply_effects'] = str(
-            self.effects_toggle.isChecked()).lower()
-        config['image']['effect_type'] = self._checked_value(
-            self.effect_buttons, 'none')
+        if "image" not in config:
+            config["image"] = {}
+        config["image"]["resolution"] = self._checked_value(self.resolution_buttons, "3840x2160")
+        config["image"]["apply_effects"] = str(self.effects_toggle.isChecked()).lower()
+        config["image"]["effect_type"] = self._checked_value(self.effect_buttons, "none")
 
         # Storage section
-        if 'storage' not in config:
-            config['storage'] = {}
-        config['storage']['save_downloads'] = str(
-            self.save_downloads_toggle.isChecked()).lower()
-        config['storage']['max_files'] = str(self.max_files_spin.value())
-        config['storage']['max_days'] = str(self.max_days_spin.value())
+        if "storage" not in config:
+            config["storage"] = {}
+        config["storage"]["save_downloads"] = str(self.save_downloads_toggle.isChecked()).lower()
+        config["storage"]["max_files"] = str(self.max_files_spin.value())
+        config["storage"]["max_days"] = str(self.max_days_spin.value())
 
         # Appearance section
-        if 'gui' not in config:
-            config['gui'] = {}
-        config['gui']['theme'] = self._checked_value(
-            self.theme_buttons, DEFAULT_THEME)
+        if "gui" not in config:
+            config["gui"] = {}
+        config["gui"]["theme"] = self._checked_value(self.theme_buttons, DEFAULT_THEME)
 
         # Save config (JSON via the ConfigView facade)
         config.save()
@@ -639,22 +684,21 @@ class SettingsTab(QWidget):
             self.on_auto_update_changed(self.auto_update_toggle.isChecked())
 
         from .dialogs import info
+
         info(self, t("gui.settings.success_title"), t("gui.settings.saved"))
 
     def reset_settings(self):
         """Reset settings to defaults."""
         from .dialogs import confirm, info
-        if not confirm(self, t("gui.settings.reset_title"),
-                       t("gui.settings.reset_confirm")):
+
+        if not confirm(self, t("gui.settings.reset_title"), t("gui.settings.reset_confirm")):
             return
         if self.config_path.exists():
             self.config_path.unlink()
         self.load_settings()
         # Re-apply the appearance settings that were just reset
         if self.on_theme_change:
-            self.on_theme_change(
-                self._checked_value(self.theme_buttons, DEFAULT_THEME))
+            self.on_theme_change(self._checked_value(self.theme_buttons, DEFAULT_THEME))
         if self.on_settings_changed:
             self.on_settings_changed()
-        info(self, t("gui.settings.success_title"),
-             t("gui.settings.reset_done"))
+        info(self, t("gui.settings.success_title"), t("gui.settings.reset_done"))

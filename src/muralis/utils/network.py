@@ -34,11 +34,11 @@ def build_session(config: Optional["ConfigManager"] = None) -> requests.Session:
     if proxy_settings:
         session.proxies.update(proxy_settings)
 
-    session.headers.update({
-        'User-Agent': config.get_str(
-            'networking', 'user_agent', 'Muralis/1.0'),
-    })
-    session.verify = config.get_bool('networking', 'verify_ssl', True)
-    session.max_redirects = config.get_int(
-        'networking', 'max_redirects', 5)
+    session.headers.update(
+        {
+            "User-Agent": config.get_str("networking", "user_agent", "Muralis/1.0"),
+        }
+    )
+    session.verify = config.get_bool("networking", "verify_ssl", True)
+    session.max_redirects = config.get_int("networking", "max_redirects", 5)
     return session

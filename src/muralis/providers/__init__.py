@@ -20,13 +20,13 @@ from muralis.providers.artinstitute import ArtInstituteProvider
 
 # Single source of truth for the available providers: name -> class.
 PROVIDER_CLASSES: Dict[str, Callable[..., WallpaperProvider]] = {
-    'bing': BingProvider,
-    'nasa': NasaProvider,
-    'pexels': PexelsProvider,
-    'wikimedia': WikimediaProvider,
-    'artinstitute': ArtInstituteProvider,
-    'wallhaven': WallhavenProvider,
-    'unsplash': UnsplashProvider,
+    "bing": BingProvider,
+    "nasa": NasaProvider,
+    "pexels": PexelsProvider,
+    "wikimedia": WikimediaProvider,
+    "artinstitute": ArtInstituteProvider,
+    "wallhaven": WallhavenProvider,
+    "unsplash": UnsplashProvider,
 }
 
 # Ordered list of provider keys (order matters: it defines CLI/GUI ordering).
@@ -37,21 +37,20 @@ def get_provider(name: str, config=None) -> WallpaperProvider:
     """Factory function to get provider by name."""
     provider_class = PROVIDER_CLASSES.get(name.lower())
     if not provider_class:
-        raise ValueError(
-            f"Unknown provider: {name}. Available: {ALL_PROVIDERS}")
+        raise ValueError(f"Unknown provider: {name}. Available: {ALL_PROVIDERS}")
     return provider_class(config)
 
 
 __all__ = [
-    'WallpaperProvider',
-    'BingProvider',
-    'NasaProvider',
-    'UnsplashProvider',
-    'WallhavenProvider',
-    'PexelsProvider',
-    'WikimediaProvider',
-    'ArtInstituteProvider',
-    'PROVIDER_CLASSES',
-    'ALL_PROVIDERS',
-    'get_provider',
+    "WallpaperProvider",
+    "BingProvider",
+    "NasaProvider",
+    "UnsplashProvider",
+    "WallhavenProvider",
+    "PexelsProvider",
+    "WikimediaProvider",
+    "ArtInstituteProvider",
+    "PROVIDER_CLASSES",
+    "ALL_PROVIDERS",
+    "get_provider",
 ]

@@ -57,8 +57,7 @@ class ThemeManager:
             dest = THEMES_DIR / builtin.name
             if not dest.exists():
                 try:
-                    dest.write_text(
-                        builtin.read_text(encoding="utf-8"), encoding="utf-8")
+                    dest.write_text(builtin.read_text(encoding="utf-8"), encoding="utf-8")
                 except OSError:
                     pass
 
@@ -261,5 +260,3 @@ QToolTip {
 QMessageBox { background-color: ${menu_bg}; }
 QMessageBox QLabel { color: ${text}; }
 """)
-
-
